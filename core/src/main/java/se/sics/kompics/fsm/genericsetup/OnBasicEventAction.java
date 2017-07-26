@@ -16,21 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.kompics.fsm.handler;
+package se.sics.kompics.fsm.genericsetup;
 
-import se.sics.kompics.fsm.FSMEvent;
-import se.sics.kompics.fsm.FSMException;
-import se.sics.kompics.fsm.FSMExternalState;
-import se.sics.kompics.fsm.FSMInternalState;
-import se.sics.kompics.fsm.FSMStateName;
-import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.KContentMsg;
-import se.sics.ktoolbox.util.network.KHeader;
+import se.sics.kompics.KompicsEvent;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface FSMMsgHandler <ES extends FSMExternalState, IS extends FSMInternalState, E extends FSMEvent> {
-  public FSMStateName handle(FSMStateName state, ES es, IS is, E payload, KContentMsg<KAddress, KHeader<KAddress>, E> msg) throws FSMException;
+public interface OnBasicEventAction<E extends KompicsEvent> {
+  public void handle(E event);
 }
-

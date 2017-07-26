@@ -18,13 +18,12 @@
  */
 package se.sics.kompics.fsm.genericsetup;
 
-import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.KContentMsg;
-import se.sics.ktoolbox.util.network.KHeader;
+import se.sics.kompics.PatternExtractor;
+import se.sics.kompics.fsm.FSMEvent;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface OnMsgAction<P extends Object> {
-  public void handle(P payload, KContentMsg<KAddress, KHeader<KAddress>, P> msg);
+public interface OnPatternEventAction<PE extends PatternExtractor<Class, FSMEvent>> {
+  public void handle(FSMEvent payload, PE container);
 }

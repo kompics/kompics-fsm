@@ -24,12 +24,10 @@ import java.util.Map;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.sics.kompics.fsm.handler.FSMEventHandler;
-import se.sics.kompics.fsm.handler.FSMMsgHandler;
+import se.sics.kompics.PatternExtractor;
+import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
+import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
 import se.sics.kompics.fsm.id.FSMId;
-import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.KContentMsg;
-import se.sics.ktoolbox.util.network.KHeader;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -43,18 +41,18 @@ public class FSMachine {
   private Pair<FSMStateName, FSMState> currentState;
   private final Map<FSMStateName, FSMState> states;
   private final Table<FSMStateName, FSMStateName, Boolean> transitionTable;
-  private final FSMEventHandler defaultEventFallback;
-  private final FSMMsgHandler defaultMsgFallback;
-  private final Map<Class, FSMEventHandler> positiveEventFallbackHandlers;
-  private final Map<Class, FSMEventHandler> negativeEventFallbackHandlers;
-  private final Map<Class, FSMMsgHandler> positiveMsgFallbackHandlers;
-  private final Map<Class, FSMMsgHandler> negativeMsgFallbackHandlers;
+  private final FSMBasicEventHandler defaultEventFallback;
+  private final FSMPatternEventHandler defaultMsgFallback;
+  private final Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers;
+  private final Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers;
+  private final Map<Class, FSMPatternEventHandler> positiveMsgFallbackHandlers;
+  private final Map<Class, FSMPatternEventHandler> negativeMsgFallbackHandlers;
 
   public FSMachine(FSMId id, FSMOnKillAction oka, Map<FSMStateName, FSMState> states,
     Table<FSMStateName, FSMStateName, Boolean> transitionTable,
-    FSMEventHandler defaultEventFallback, FSMMsgHandler defaultMsgFallback,
-    Map<Class, FSMEventHandler> positiveEventFallbackHandlers, Map<Class, FSMEventHandler> negativeEventFallbackHandlers,
-    Map<Class, FSMMsgHandler> positiveMsgFallbackHandlers, Map<Class, FSMMsgHandler> negativeMsgFallbackHandlers) {
+    FSMBasicEventHandler defaultEventFallback, FSMPatternEventHandler defaultMsgFallback,
+    Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers, Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers,
+    Map<Class, FSMPatternEventHandler> positiveMsgFallbackHandlers, Map<Class, FSMPatternEventHandler> negativeMsgFallbackHandlers) {
     this.id = id;
     this.oka = oka;
     this.states = states;
@@ -72,7 +70,7 @@ public class FSMachine {
     LOG.trace("{}state:{} handle event:{}", new Object[]{id, currentState.getValue0(), event});
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(event);
     if (!next.isPresent()) {
-      FSMEventHandler fallback = positiveEventFallbackHandlers.get(event.getClass());
+      FSMBasicEventHandler fallback = positiveEventFallbackHandlers.get(event.getClass());
       if (fallback == null) {
         LOG.info("{}state:{} does not handle positive port event:{}", new Object[]{id, currentState.getValue0(), event});
         return;
@@ -87,7 +85,7 @@ public class FSMachine {
     LOG.trace("{}state:{} handle event:{}", new Object[]{id, currentState.getValue0(), event});
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(event);
     if (!next.isPresent()) {
-      FSMEventHandler fallback = negativeEventFallbackHandlers.get(event.getClass());
+      FSMBasicEventHandler fallback = negativeEventFallbackHandlers.get(event.getClass());
       if (fallback == null) {
         LOG.info("{}state:{} does not handle negative port event:{}", new Object[]{id, currentState.getValue0(), event});
         return;
@@ -113,39 +111,39 @@ public class FSMachine {
     currentState = Pair.with(next, states.get(next));
   }
 
-  public void handlePositive(FSMEvent payload, KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg) throws
+  public void handlePositive(FSMEvent payload, PatternExtractor<Class, FSMEvent> container) throws
     FSMException {
-    LOG.trace("{}state:{} handle msg:{}", new Object[]{id, currentState.getValue0(), msg});
-    Optional<FSMStateName> next = currentState.getValue1().handlePositive(payload, msg);
+    LOG.trace("{}state:{} handle container:{}", new Object[]{id, currentState.getValue0(), container});
+    Optional<FSMStateName> next = currentState.getValue1().handlePositive(payload, container);
     if (!next.isPresent()) {
-      FSMMsgHandler fallback = positiveMsgFallbackHandlers.get(payload.getClass());
+      FSMPatternEventHandler fallback = positiveMsgFallbackHandlers.get(payload.getClass());
       if (fallback == null) {
-        LOG.info("{}state:{} does not handle positive network msg:{}", new Object[]{id, currentState.getValue0(), msg});
+        LOG.info("{}state:{} does not handle positive network msg:{}", new Object[]{id, currentState.getValue0(), container});
         return;
       } else {
-        next = Optional.of(currentState.getValue1().fallback(payload, msg, fallback));
+        next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
       }
     }
-    handle(next.get(), payload, msg);
+    handle(next.get(), payload, container);
   }
 
-  public void handleNegative(FSMEvent payload, KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg) throws
+  public void handleNegative(FSMEvent payload, PatternExtractor<Class, FSMEvent> container) throws
     FSMException {
-    LOG.trace("{}state:{} handle msg:{}", new Object[]{id, currentState.getValue0(), msg});
-    Optional<FSMStateName> next = currentState.getValue1().handleNegative(payload, msg);
+    LOG.trace("{}state:{} handle container:{}", new Object[]{id, currentState.getValue0(), container});
+    Optional<FSMStateName> next = currentState.getValue1().handleNegative(payload, container);
     if (!next.isPresent()) {
-      FSMMsgHandler fallback = negativeMsgFallbackHandlers.get(payload.getClass());
+      FSMPatternEventHandler fallback = negativeMsgFallbackHandlers.get(payload.getClass());
       if (fallback == null) {
-        LOG.info("{}state:{} does not handle negative network msg:{}", new Object[]{id, currentState.getValue0(), msg});
+        LOG.info("{}state:{} does not handle negative network msg:{}", new Object[]{id, currentState.getValue0(), container});
         return;
       } else {
-        next = Optional.of(currentState.getValue1().fallback(payload, msg, fallback));
+        next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
       }
     }
-    handle(next.get(), payload, msg);
+    handle(next.get(), payload, container);
   }
 
-  private void handle(FSMStateName next, FSMEvent payload, KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg)
+  private void handle(FSMStateName next, FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
     throws FSMException {
     if (FSMBasicStateNames.FINAL.equals(next)) {
       oka.kill(id);
@@ -156,12 +154,12 @@ public class FSMachine {
       throw new FSMException("transition from:" + currentState.getValue0() + " to:" + next + " not defined");
     }
     LOG.trace("{}state:{} msg:{} resulted in transition to state:{}",
-      new Object[]{id, currentState.getValue0(), msg, next});
+      new Object[]{id, currentState.getValue0(), container, next});
     //we check at definition that both from and to states of a transition are registered
     currentState = Pair.with(next, states.get(next));
   }
   
-  static FSMEventHandler fallbackEventHandler = new FSMEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
+  static FSMBasicEventHandler fallbackEventHandler = new FSMBasicEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
     @Override
     public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent event) 
       throws FSMException {
@@ -170,11 +168,11 @@ public class FSMachine {
     }
   };
   
-  static FSMMsgHandler fallbackMsgHandler = new FSMMsgHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
+  static FSMPatternEventHandler fallbackMsgHandler = new FSMPatternEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
     @Override
      public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent payload,
-      KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg) throws FSMException {
-      LOG.info("{}state:{} does not handle network msg:{}", new Object[]{is.getFSMId(), state, msg});
+      PatternExtractor<Class, FSMEvent> container) throws FSMException {
+      LOG.info("{}state:{} does not handle container:{}", new Object[]{is.getFSMId(), state, container});
       return state;
     }
   };

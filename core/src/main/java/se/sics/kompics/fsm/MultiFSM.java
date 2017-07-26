@@ -27,18 +27,16 @@ import java.util.Set;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.sics.kompics.ClassMatchedHandler;
 import se.sics.kompics.ComponentProxy;
+import se.sics.kompics.Handler;
+import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.genericsetup.GenericSetup;
-import se.sics.kompics.fsm.genericsetup.OnEventAction;
 import se.sics.kompics.fsm.genericsetup.OnFSMExceptionAction;
-import se.sics.kompics.fsm.genericsetup.OnMsgAction;
 import se.sics.kompics.fsm.id.FSMDefId;
 import se.sics.kompics.fsm.id.FSMId;
 import se.sics.kompics.fsm.id.FSMIds;
-import se.sics.ktoolbox.util.identifiable.Identifier;
-import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.KContentMsg;
-import se.sics.ktoolbox.util.network.KHeader;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -54,10 +52,10 @@ public class MultiFSM {
   private final Map<FSMId, FSMachine> fsms = new HashMap<>();
   private final FSMExternalState es;
   private final FSMInternalStateBuilders isb;
-  private final Map<Class, Set<Class>> positivePorts;
-  private final Map<Class, Set<Class>> negativePorts;
-  private final Set<Class> positiveNetworkMsgs;
-  private final Set<Class> negativeNetworkMsgs;
+  private final Map<Class, Set<Class>> positiveBasicEvents;
+  private final Map<Class, Set<Class>> negativeBasicEvents;
+  private final Map<Class, Set<Class>> positivePatternEvents;
+  private final Map<Class, Set<Class>> negativePatternEvents;
 
   private final FSMOnKillAction oka = new FSMOnKillAction() {
     @Override
@@ -81,7 +79,7 @@ public class MultiFSM {
     }
     return Optional.of(fsm);
   }
-  private final OnEventAction oeapos = new OnEventAction<FSMEvent>() {
+  private final Handler obeapos = new Handler<FSMEvent>() {
     @Override
     public void handle(FSMEvent event) {
       try {
@@ -95,7 +93,7 @@ public class MultiFSM {
     }
   };
 
-  private final OnEventAction oeaneg = new OnEventAction<FSMEvent>() {
+  private final Handler obeaneg = new Handler<FSMEvent>() {
     @Override
     public void handle(FSMEvent event) {
       try {
@@ -109,48 +107,52 @@ public class MultiFSM {
     }
   };
 
-  private final OnMsgAction omapos = new OnMsgAction<FSMEvent>() {
-    @Override
-    public void handle(FSMEvent payload, KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg) {
-      try {
-        Optional<FSMachine> fsm = getFSM(payload);
-        if (fsm.isPresent()) {
-          fsm.get().handlePositive(payload, msg);
+  private <B extends PatternExtractor<Class, FSMEvent>> ClassMatchedHandler opeapos() {
+    return new ClassMatchedHandler<FSMEvent, B>() {
+      @Override
+      public void handle(FSMEvent payload, B container) {
+        try {
+          Optional<FSMachine> fsm = getFSM(payload);
+          if (fsm.isPresent()) {
+            fsm.get().handlePositive(payload, container);
+          }
+        } catch (FSMException ex) {
+          oexa.handle(ex);
         }
-      } catch (FSMException ex) {
-        oexa.handle(ex);
       }
-    }
-  };
+    };
+  }
 
-  private final OnMsgAction omaneg = new OnMsgAction<FSMEvent>() {
-    @Override
-    public void handle(FSMEvent payload, KContentMsg<KAddress, KHeader<KAddress>, FSMEvent> msg) {
-      try {
-        Optional<FSMachine> fsm = getFSM(payload);
-        if (fsm.isPresent()) {
-          fsm.get().handleNegative(payload, msg);
+  private <B extends PatternExtractor<Class, FSMEvent>> ClassMatchedHandler opeaneg() {
+    return new ClassMatchedHandler<FSMEvent, B>() {
+      @Override
+      public void handle(FSMEvent payload, B container) {
+        try {
+          Optional<FSMachine> fsm = getFSM(payload);
+          if (fsm.isPresent()) {
+            fsm.get().handleNegative(payload, container);
+          }
+        } catch (FSMException ex) {
+          oexa.handle(ex);
         }
-      } catch (FSMException ex) {
-        oexa.handle(ex);
       }
-    }
-  };
+    };
+  }
 
   // Class1 - ? extends PortType , Class2 - ? extends FSMEvent(KompicsEvent)
   public MultiFSM(FSMachineDef fsmDef, OnFSMExceptionAction oexa, FSMIdExtractor fsmIdExtractor,
     FSMExternalState es, FSMInternalStateBuilders isb,
     Map<Class, Set<Class>> positivePorts, Map<Class, Set<Class>> negativePorts,
-    Set<Class> positiveNetworkMsgs, Set<Class> negativeNetworkMsgs) {
+    Map<Class, Set<Class>> positiveNetworkMsgs, Map<Class, Set<Class>> negativeNetworkMsgs) {
     this.fsmDef = fsmDef;
     this.oexa = oexa;
     this.fsmIdExtractor = fsmIdExtractor;
     this.es = es;
     this.isb = isb;
-    this.positivePorts = positivePorts;
-    this.negativePorts = negativePorts;
-    this.positiveNetworkMsgs = positiveNetworkMsgs;
-    this.negativeNetworkMsgs = negativeNetworkMsgs;
+    this.positiveBasicEvents = positivePorts;
+    this.negativeBasicEvents = negativePorts;
+    this.positivePatternEvents = positiveNetworkMsgs;
+    this.negativePatternEvents = negativeNetworkMsgs;
   }
 
   public void setProxy(ComponentProxy proxy) {
@@ -158,63 +160,71 @@ public class MultiFSM {
   }
 
   public void setupPortsAndHandlers() {
-    Pair<List, List> ports = preparePorts();
-    Pair<List, List> networkPorts = prepareNetwork();
+    Pair<List, List> ports = prepareBasicEvents();
+    Pair<List, List> networkPorts = preparePatternEvents();
     GenericSetup.portsAndHandledEvents(es.getProxy(), ports.getValue0(), ports.getValue1(),
       networkPorts.getValue0(), networkPorts.getValue1());
   }
 
   public void setupHandlers() {
-    Pair<List, List> ports = preparePorts();
-    Pair<List, List> networkPorts = prepareNetwork();
-    GenericSetup.handledEvents(es.getProxy(), ports.getValue0(), ports.getValue1(),
-      networkPorts.getValue0(), networkPorts.getValue1());
+    Pair<List, List> basicEvents = prepareBasicEvents();
+    Pair<List, List> patternEvents = preparePatternEvents();
+    GenericSetup.handledEvents(es.getProxy(), basicEvents.getValue0(), basicEvents.getValue1(),
+      patternEvents.getValue0(), patternEvents.getValue1());
   }
 
-  private Pair<List, List> preparePorts() {
+  private Pair<List, List> prepareBasicEvents() {
     List pPorts = new LinkedList<>();
     List nPorts = new LinkedList<>();
 
-    for (Map.Entry<Class, Set<Class>> e : positivePorts.entrySet()) {
-      List<Pair<OnEventAction, Class>> events = new LinkedList<>();
+    for (Map.Entry<Class, Set<Class>> e : positiveBasicEvents.entrySet()) {
+      List<Pair<Handler, Class>> events = new LinkedList<>();
       for (Class c : e.getValue()) {
-        events.add(Pair.with(oeapos, c));
+        events.add(Pair.with(obeapos, c));
       }
       pPorts.add(Pair.with(e.getKey(), events));
     }
-    for (Map.Entry<Class, Set<Class>> e : negativePorts.entrySet()) {
-      List<Pair<OnEventAction, Class>> events = new LinkedList<>();
+    for (Map.Entry<Class, Set<Class>> e : negativeBasicEvents.entrySet()) {
+      List<Pair<Handler, Class>> events = new LinkedList<>();
       for (Class c : e.getValue()) {
-        events.add(Pair.with(oeaneg, c));
+        events.add(Pair.with(obeaneg, c));
       }
       nPorts.add(Pair.with(e.getKey(), events));
     }
     return Pair.with(pPorts, nPorts);
   }
 
-  private Pair<List, List> prepareNetwork() {
+  private Pair<List, List> preparePatternEvents() {
     List pPorts = new LinkedList<>();
     List nPorts = new LinkedList<>();
-    for (Class c : positiveNetworkMsgs) {
-      pPorts.add(Pair.with(omapos, c));
+    for (Map.Entry<Class, Set<Class>> e : positivePatternEvents.entrySet()) {
+      List<Pair<ClassMatchedHandler, Class>> events = new LinkedList<>();
+      for (Class c : e.getValue()) {
+        events.add(Pair.with(opeapos(), c));
+      }
+      pPorts.add(Pair.with(e.getKey(), events));
     }
-    for (Class c : negativeNetworkMsgs) {
-      nPorts.add(Pair.with(omaneg, c));
+    for (Map.Entry<Class, Set<Class>> e : negativePatternEvents.entrySet()) {
+      List<Pair<ClassMatchedHandler, Class>> events = new LinkedList<>();
+      for (Class c : e.getValue()) {
+        events.add(Pair.with(opeaneg(), c));
+      }
+      nPorts.add(Pair.with(e.getKey(), events));
     }
     return Pair.with(pPorts, nPorts);
   }
-  
+
   public FSMStateName getFSMState(String fsmName, Identifier baseId) {
     FSMDefId fsmDefId = FSMIds.getDefId(fsmName);
     FSMId fsmId = fsmDefId.getFSMId(baseId);
     FSMachine fsm = fsms.get(fsmId);
     return fsm.getState();
   }
-  
+
   public boolean isEmpty() {
     return fsms.isEmpty();
   }
-  
+
   public int size() {
     return fsms.size();
   }

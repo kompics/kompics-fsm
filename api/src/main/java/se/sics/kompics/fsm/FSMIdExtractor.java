@@ -27,6 +27,6 @@ import se.sics.kompics.fsm.id.FSMId;
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public interface FSMIdExtractor<E extends FSMEvent> {
-  public void set(Set<Class> events, Set<Class> positiveNetworkMsgs, Set<Class> negativeNetworkMsgs);
+  public void set(Set<Class> events, Set<Class> patternEvents);
   public Optional<FSMId> fromEvent(FSMDefId fsmdId, E event) throws FSMException;
 }

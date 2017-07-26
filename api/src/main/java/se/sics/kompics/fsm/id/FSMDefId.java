@@ -20,7 +20,7 @@ package se.sics.kompics.fsm.id;
 
 import com.google.common.io.BaseEncoding;
 import java.util.Arrays;
-import se.sics.ktoolbox.util.identifiable.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

@@ -27,12 +27,11 @@ import se.sics.kompics.ComponentProxy;
 import se.sics.kompics.Handler;
 import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.Negative;
+import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.Port;
 import se.sics.kompics.Positive;
+import se.sics.kompics.fsm.FSMEvent;
 import se.sics.kompics.network.Network;
-import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.KContentMsg;
-import se.sics.ktoolbox.util.network.KHeader;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -42,83 +41,105 @@ public class GenericSetup {
   private static final Logger LOG = LoggerFactory.getLogger(GenericSetup.class);
 
   public static void portsAndHandledEvents(ComponentProxy proxy,
-    List<Pair<Class, List<Pair<OnEventAction, Class>>>> positivePorts,
-    List<Pair<Class, List<Pair<OnEventAction, Class>>>> negativePorts,
-    List<Pair<OnMsgAction, Class>> positiveNetworkMsgs,
-    List<Pair<OnMsgAction, Class>> negativeNetworkMsgs) {
+    List<Pair<Class, List<Pair<Handler, Class>>>> positiveBasicEvents,
+    List<Pair<Class, List<Pair<Handler, Class>>>> negativeBasicEvents,
+    List<Pair<Class, List<Pair<ClassMatchedHandler, Class>>>> positivePatternEvents,
+    List<Pair<Class, List<Pair<ClassMatchedHandler, Class>>>> negativePatternEvents) {
 
-    for (Pair<Class, List<Pair<OnEventAction, Class>>> e : positivePorts) {
+    for (Pair<Class, List<Pair<Handler, Class>>> e : positiveBasicEvents) {
       LOG.info("positive port:{}", e.getValue0());
-      Positive port = proxy.requires(e.getValue0());
-      setupPort(proxy, port, e.getValue1());
+      Positive port;
+      try {
+        port = proxy.getNegative(e.getValue0()).getPair();
+      } catch (Exception ex) {
+        port = proxy.requires(e.getValue0());
+      }
+      setupBasicEvent(proxy, port, e.getValue1());
     }
-    if (!positiveNetworkMsgs.isEmpty()) {
-      Positive port = proxy.requires(Network.class);
-      setupNetworkPort(proxy, port, positiveNetworkMsgs);
+    for (Pair<Class, List<Pair<ClassMatchedHandler, Class>>> e : positivePatternEvents) {
+      LOG.info("positive port:{}", e.getValue0());
+      Positive port;
+      try {
+        port = proxy.getNegative(e.getValue0()).getPair();
+      } catch (Exception ex) {
+        port = proxy.requires(e.getValue0());
+      }
+      setupPatternEvent(proxy, port, e.getValue1());
     }
-    for (Pair<Class, List<Pair<OnEventAction, Class>>> e : negativePorts) {
+    for (Pair<Class, List<Pair<Handler, Class>>> e : negativeBasicEvents) {
       LOG.info("negative port:{}", e.getValue0());
-      Negative port = proxy.provides(e.getValue0());
-      setupPort(proxy, port, e.getValue1());
+      Negative port;
+      try {
+        port = proxy.getPositive(e.getValue0()).getPair();
+      } catch(Exception ex) {
+        port = proxy.provides(e.getValue0());
+      }
+      setupBasicEvent(proxy, port, e.getValue1());
     }
-    if (!negativeNetworkMsgs.isEmpty()) {
-      Negative port = proxy.provides(Network.class);
-      setupNetworkPort(proxy, port, negativeNetworkMsgs);
+   for (Pair<Class, List<Pair<ClassMatchedHandler, Class>>> e : negativePatternEvents) {
+       LOG.info("negative port:{}", e.getValue0());
+      Negative port;
+      try {
+        port = proxy.getPositive(e.getValue0()).getPair();
+      } catch(Exception ex) {
+        port = proxy.provides(e.getValue0());
+      }
+      setupPatternEvent(proxy, port, e.getValue1());
     }
   }
 
   public static void handledEvents(ComponentProxy proxy,
-    List<Pair<Class, List<Pair<OnEventAction, Class>>>> positivePorts,
-    List<Pair<Class, List<Pair<OnEventAction, Class>>>> negativePorts,
-    List<Pair<OnMsgAction, Class>> positiveNetworkMsgs,
-    List<Pair<OnMsgAction, Class>> negativeNetworkMsgs) {
+    List<Pair<Class, List<Pair<Handler, Class>>>> positiveBasicEvents,
+    List<Pair<Class, List<Pair<Handler, Class>>>> negativeBasicEvents,
+    List<Pair<Class, List<Pair<ClassMatchedHandler, Class>>>> positivePatternEvents,
+    List<Pair<Class, List<Pair<ClassMatchedHandler, Class>>>> negativePatternEvents) {
 
-    for (Pair<Class, List<Pair<OnEventAction, Class>>> e : positivePorts) {
+    for (Pair<Class, List<Pair<Handler, Class>>> e : positiveBasicEvents) {
       LOG.info("positive port:{}", e.getValue0());
-      Negative aux = proxy.getNegative(e.getValue0());
-      Positive port = aux.getPair();
-      setupPort(proxy, port, e.getValue1());
+      Positive port = proxy.getNegative(e.getValue0()).getPair();
+      setupBasicEvent(proxy, port, e.getValue1());
     }
-    if (!positiveNetworkMsgs.isEmpty()) {
+    for (Pair<Class, List<Pair<ClassMatchedHandler, Class>>> e : positivePatternEvents) {
+      LOG.info("positive port:{}", e.getValue0());
       Positive port = proxy.getNegative(Network.class).getPair();
-      setupNetworkPort(proxy, port, positiveNetworkMsgs);
+      setupPatternEvent(proxy, port, e.getValue1());
     }
-    for (Pair<Class, List<Pair<OnEventAction, Class>>> e : negativePorts) {
+    for (Pair<Class, List<Pair<Handler, Class>>> e : negativeBasicEvents) {
       LOG.info("negative port:{}", e.getValue0());
-      Positive aux = proxy.getPositive(e.getValue0());
-      Negative port = aux.getPair();
-      setupPort(proxy, port, e.getValue1());
+      Negative port = proxy.getPositive(e.getValue0()).getPair();
+      setupBasicEvent(proxy, port, e.getValue1());
     }
-    if (!negativeNetworkMsgs.isEmpty()) {
-      Negative port = proxy.getPositive(Network.class).getPair();
-      setupNetworkPort(proxy, port, negativeNetworkMsgs);
-    }
-  }
-
-  private static void setupPort(ComponentProxy proxy, Port port, List<Pair<OnEventAction, Class>> handledEvents) {
-    for (final Pair<OnEventAction, Class> e : handledEvents) {
-      Handler handler = new Handler(e.getValue1()) {
-        @Override
-        public void handle(KompicsEvent event) {
-          OnEventAction oea = e.getValue0();
-          oea.handle(event);
-        }
-      };
-      proxy.subscribe(handler, port);
+    for (Pair<Class, List<Pair<ClassMatchedHandler, Class>>> e : negativePatternEvents) {
+      LOG.info("negative port:{}", e.getValue0());
+      Negative port = proxy.getPositive(e.getValue0()).getPair();
+      setupPatternEvent(proxy, port, e.getValue1());
     }
   }
 
-  private static void setupNetworkPort(ComponentProxy proxy, Port port, List<Pair<OnMsgAction, Class>> handledMsgs) {
-    for (final Pair<OnMsgAction, Class> e : handledMsgs) {
-      ClassMatchedHandler handler
-        = new ClassMatchedHandler<Object, KContentMsg<KAddress, KHeader<KAddress>, Object>>(e.getValue1()) {
+  private static void setupBasicEvent(ComponentProxy proxy, Port port, 
+    List<Pair<Handler, Class>> handledBasicEvents) {
+    for (final Pair<Handler, Class> e : handledBasicEvents) {
+//      Handler handler = new Handler(e.getValue1()) {
+//        @Override
+//        public void handle(KompicsEvent event) {
+//          e.getValue0().handle(event);
+//        }
+//      };
+      proxy.subscribe(e.getValue0(), port);
+    }
+  }
 
-          @Override
-          public void handle(Object content, KContentMsg<KAddress, KHeader<KAddress>, Object> container) {
-            e.getValue0().handle(content, container);
-          }
-        };
-      proxy.subscribe(handler, port);
+  private static <C extends KompicsEvent & PatternExtractor<Class, FSMEvent>> void setupPatternEvent(ComponentProxy proxy, Port port,
+    List<Pair<ClassMatchedHandler, Class>> handledPatternEvents) {
+    for (final Pair<ClassMatchedHandler, Class> e : handledPatternEvents){
+//      ClassMatchedHandler handler
+//        = new ClassMatchedHandler<FSMEvent, C>(e.getValue1()) {
+//          @Override
+//          public void handle(FSMEvent payload, C container) {
+//            e.getValue0().handle(payload, container);
+//          }
+//        };
+      proxy.subscribe(e.getValue0(), port);
     }
   }
 }

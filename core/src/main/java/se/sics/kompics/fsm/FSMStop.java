@@ -18,8 +18,6 @@
  */
 package se.sics.kompics.fsm;
 
-import se.sics.ktoolbox.nutil.fsm.api.FSMEvent;
-
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */

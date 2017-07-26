@@ -21,10 +21,10 @@ package se.sics.kompics.fsm;
 import com.google.common.collect.Table;
 import java.util.HashMap;
 import java.util.Map;
-import se.sics.kompics.fsm.handler.FSMEventHandler;
-import se.sics.kompics.fsm.handler.FSMMsgHandler;
+import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
+import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
 import se.sics.kompics.fsm.id.FSMDefId;
-import se.sics.ktoolbox.util.identifiable.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -34,18 +34,18 @@ public class FSMachineDef {
   public final FSMDefId id;
   private final Map<FSMStateName, FSMStateDef> stateDefs;
   private final Table<FSMStateName, FSMStateName, Boolean> transitionTable;
-  private final FSMEventHandler fallbackEventHandler;
-  private final FSMMsgHandler fallbackMsgHandler;
-  private final Map<Class, FSMEventHandler> positiveEventFallbackHandlers;
-  private final Map<Class, FSMEventHandler> negativeEventFallbackHandlers;
-  private final Map<Class, FSMMsgHandler>  positiveMsgFallbackHandlers;
-  private final Map<Class, FSMMsgHandler>  negativeMsgFallbackHandlers;
+  private final FSMBasicEventHandler fallbackEventHandler;
+  private final FSMPatternEventHandler fallbackMsgHandler;
+  private final Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers;
+  private final Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers;
+  private final Map<Class, FSMPatternEventHandler>  positiveMsgFallbackHandlers;
+  private final Map<Class, FSMPatternEventHandler>  negativeMsgFallbackHandlers;
 
   private FSMachineDef(FSMDefId id, Map<FSMStateName, FSMStateDef> stateDefs,
     Table<FSMStateName, FSMStateName, Boolean> transitionTable, 
-    FSMEventHandler fallbackEventHandler, FSMMsgHandler fallbackMsgHandler,
-    Map<Class, FSMEventHandler> positiveEventFallbackHandlers, Map<Class, FSMEventHandler> negativeEventFallbackHandlers,
-    Map<Class, FSMMsgHandler>  positiveMsgFallbackHandlers, Map<Class, FSMMsgHandler>  negativeMsgFallbackHandlers) {
+    FSMBasicEventHandler fallbackEventHandler, FSMPatternEventHandler fallbackMsgHandler,
+    Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers, Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers,
+    Map<Class, FSMPatternEventHandler>  positiveMsgFallbackHandlers, Map<Class, FSMPatternEventHandler>  negativeMsgFallbackHandlers) {
     this.id = id;
     this.stateDefs = stateDefs;
     this.transitionTable = transitionTable;
@@ -72,9 +72,9 @@ public class FSMachineDef {
   
   public static FSMachineDef instance(FSMDefId id, Map<FSMStateName, FSMStateDef> stateDefs,
     Table<FSMStateName, FSMStateName, Boolean> transitionTable, 
-    FSMEventHandler fallbackEventHandler, FSMMsgHandler fallbackMsgHandler,
-    Map<Class, FSMEventHandler> positiveEventFallbackHandlers, Map<Class, FSMEventHandler> negativeEventFallbackHandlers,
-    Map<Class, FSMMsgHandler>  positiveMsgFallbackHandlers, Map<Class, FSMMsgHandler>  negativeMsgFallbackHandlers) {
+    FSMBasicEventHandler fallbackEventHandler, FSMPatternEventHandler fallbackMsgHandler,
+    Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers, Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers,
+    Map<Class, FSMPatternEventHandler>  positiveMsgFallbackHandlers, Map<Class, FSMPatternEventHandler>  negativeMsgFallbackHandlers) {
     return new FSMachineDef(id, stateDefs, transitionTable, fallbackEventHandler, fallbackMsgHandler,
       positiveEventFallbackHandlers, negativeEventFallbackHandlers, positiveMsgFallbackHandlers,
       negativeMsgFallbackHandlers);
@@ -82,8 +82,8 @@ public class FSMachineDef {
   
   public static FSMachineDef instance(FSMDefId id, Map<FSMStateName, FSMStateDef> stateDefs,
     Table<FSMStateName, FSMStateName, Boolean> transitionTable, 
-    Map<Class, FSMEventHandler> positiveEventFallbackHandlers, Map<Class, FSMEventHandler> negativeEventFallbackHandlers,
-    Map<Class, FSMMsgHandler>  positiveMsgFallbackHandlers, Map<Class, FSMMsgHandler>  negativeMsgFallbackHandlers) {
+    Map<Class, FSMBasicEventHandler> positiveEventFallbackHandlers, Map<Class, FSMBasicEventHandler> negativeEventFallbackHandlers,
+    Map<Class, FSMPatternEventHandler>  positiveMsgFallbackHandlers, Map<Class, FSMPatternEventHandler>  negativeMsgFallbackHandlers) {
     return new FSMachineDef(id, stateDefs, transitionTable, FSMachine.fallbackEventHandler, FSMachine.fallbackMsgHandler,
       positiveEventFallbackHandlers, negativeEventFallbackHandlers, positiveMsgFallbackHandlers,
       negativeMsgFallbackHandlers);

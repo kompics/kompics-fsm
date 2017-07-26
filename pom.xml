@@ -12,7 +12,6 @@
   </modules>
   <properties>
     <kompics.version>1.0.0-SNAPSHOT</kompics.version>
-    <ktoolbox.version>2.0.4-SNAPSHOT</ktoolbox.version>
     <guava.version>18.0</guava.version>
     <tuples.version>1.2</tuples.version>
     <config.version>1.2.1</config.version>

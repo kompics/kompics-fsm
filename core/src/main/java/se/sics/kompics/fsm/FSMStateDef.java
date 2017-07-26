@@ -20,8 +20,8 @@ package se.sics.kompics.fsm;
 
 import com.google.common.base.Optional;
 import java.util.Map;
-import se.sics.kompics.fsm.handler.FSMEventHandler;
-import se.sics.kompics.fsm.handler.FSMMsgHandler;
+import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
+import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
 import se.sics.kompics.fsm.handler.FSMStateChangeHandler;
 
 /**
@@ -32,11 +32,11 @@ public class FSMStateDef {
   private Optional<FSMStateChangeHandler> onEntry;
   private Optional<FSMStateChangeHandler> onExit;
   
-  private Map<Class, FSMEventHandler> positiveHandlers;
-  private Map<Class, FSMEventHandler> negativeHandlers;
+  private Map<Class, FSMBasicEventHandler> positiveHandlers;
+  private Map<Class, FSMBasicEventHandler> negativeHandlers;
   
-  private Map<Class, FSMMsgHandler> positiveNetworkHandlers;
-  private Map<Class, FSMMsgHandler> negativeNetworkHandlers;
+  private Map<Class, FSMPatternEventHandler> positiveNetworkHandlers;
+  private Map<Class, FSMPatternEventHandler> negativeNetworkHandlers;
 
   private FSMStateDef() {}
   
@@ -50,22 +50,22 @@ public class FSMStateDef {
     return this;
   }
 
-  public FSMStateDef setPositiveHandlers(Map<Class, FSMEventHandler> positiveHandlers) {
+  public FSMStateDef setPositiveHandlers(Map<Class, FSMBasicEventHandler> positiveHandlers) {
     this.positiveHandlers = positiveHandlers;
     return this;
   }
 
-  public FSMStateDef setNegativeHandlers(Map<Class, FSMEventHandler> negativeHandlers) {
+  public FSMStateDef setNegativeHandlers(Map<Class, FSMBasicEventHandler> negativeHandlers) {
     this.negativeHandlers = negativeHandlers;
     return this;
   }
 
-  public FSMStateDef setPositiveNetworkHandlers(Map<Class, FSMMsgHandler> positiveNetworkHandlers) {
+  public FSMStateDef setPositiveNetworkHandlers(Map<Class, FSMPatternEventHandler> positiveNetworkHandlers) {
     this.positiveNetworkHandlers = positiveNetworkHandlers;
     return this;
   }
 
-  public FSMStateDef setNegativeNetworkHandlers(Map<Class, FSMMsgHandler> negativeNetworkHandlers) {
+  public FSMStateDef setNegativeNetworkHandlers(Map<Class, FSMPatternEventHandler> negativeNetworkHandlers) {
     this.negativeNetworkHandlers = negativeNetworkHandlers;
     return this;
   }

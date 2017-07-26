@@ -16,10 +16,5 @@
   </properties>
     
   <dependencies>
-    <dependency>
-      <groupId>se.sics.ktoolbox.util</groupId>
-      <artifactId>kcore</artifactId>
-      <version>${ktoolbox.version}</version>
-    </dependency>
   </dependencies>
 </project>
