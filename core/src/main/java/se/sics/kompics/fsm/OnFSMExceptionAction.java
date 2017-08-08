@@ -16,14 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.kompics.fsm.genericsetup;
+package se.sics.kompics.fsm;
 
-import se.sics.kompics.PatternExtractor;
-import se.sics.kompics.fsm.FSMEvent;
+import se.sics.kompics.fsm.FSMException;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface OnPatternEventAction<PE extends PatternExtractor<Class, FSMEvent>> {
-  public void handle(FSMEvent payload, PE container);
+public interface OnFSMExceptionAction {
+  public void handle(FSMException ex);
 }

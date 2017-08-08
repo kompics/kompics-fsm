@@ -26,12 +26,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import se.sics.kompics.fsm.genericsetup.OnFSMExceptionAction;
+import org.javatuples.Pair;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
 import se.sics.kompics.fsm.handler.FSMStateChangeHandler;
-import se.sics.kompics.fsm.id.FSMDefId;
-import se.sics.kompics.fsm.id.FSMIds;
+import se.sics.kompics.fsm.id.FSMIdentifierFactory;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -42,10 +41,10 @@ public class FSMBuilder {
 
     private Map<Class, Set<Class>> positiveBasicEvents = new HashMap<>();
     private Map<Class, Set<Class>> negativeBasicEvents = new HashMap<>();
-    private Set<Class> basicEvents = new HashSet<>();
-    private Map<Class, Set<Class>> positivePatternEvents = new HashMap<>();
-    private Map<Class, Set<Class>> negativePatternEvents = new HashMap<>();
-    private Set<Class> patternEvents = new HashSet<>();
+    private final Set<Class> basicEvents = new HashSet<>();
+    private Map<Class, Set<Pair<Class, Class>>> positivePatternEvents = new HashMap<>();
+    private Map<Class, Set<Pair<Class, Class>>> negativePatternEvents = new HashMap<>();
+    private final Set<Pair<Class, Class>> patternEvents = new HashSet<>();
 
     private MultiMachine() {
     }
@@ -66,30 +65,26 @@ public class FSMBuilder {
       return this;
     }
 
-    public MultiMachine setPositivePatternEvents(Map<Class, Set<Class>> events) {
+    public MultiMachine setPositivePatternEvents(Map<Class, Set<Pair<Class, Class>>> events) {
       this.positivePatternEvents = events;
-      for (Set<Class> e : events.values()) {
+      for (Set<Pair<Class, Class>> e : events.values()) {
         patternEvents.addAll(e);
       }
       return this;
     }
 
-    public MultiMachine setNegativePatternEvents(Map<Class, Set<Class>> events) {
+    public MultiMachine setNegativePatternEvents(Map<Class, Set<Pair<Class, Class>>> events) {
       this.negativePatternEvents = events;
-      for (Set<Class> e : events.values()) {
+      for (Set<Pair<Class, Class>> e : events.values()) {
         patternEvents.addAll(e);
       }
       return this;
     }
 
-    public MultiFSM buildMultiFSM(final FSMachineDef fsmd, OnFSMExceptionAction oexa, FSMExternalState es,
-      FSMInternalStateBuilder builder, FSMIdExtractor fsmIdExtractor) throws FSMException {
+    public MultiFSM buildMultiFSM(final FSMachineDef fsmDef, OnFSMExceptionAction oexa, FSMExternalState es,
+      FSMInternalStateBuilder builder, BaseIdExtractor fsmIdExtractor) throws FSMException {
 
-      FSMInternalStateBuilders builders = new FSMInternalStateBuilders();
-      builders.register(fsmd.id, builder);
-
-      fsmIdExtractor.set(basicEvents, patternEvents);
-      MultiFSM multiFSM = new MultiFSM(fsmd, oexa, fsmIdExtractor, es, builders, positiveBasicEvents, negativeBasicEvents,
+      MultiFSM multiFSM = new MultiFSM(fsmDef, oexa, fsmIdExtractor, es, builder, positiveBasicEvents, negativeBasicEvents,
         positivePatternEvents, negativePatternEvents);
       return multiFSM;
     }
@@ -99,12 +94,12 @@ public class FSMBuilder {
     }
   }
 
-  public static class Machine {
+  public static class StructuralDefinition {
 
     private final Table<FSMStateName, FSMStateName, Boolean> transitionTable = HashBasedTable.create();
     private final Map<FSMStateName, FSMStateDef> states = new HashMap<>();
 
-    private Machine() {
+    private StructuralDefinition() {
     }
 
     public Transition onStart() throws FSMException {
@@ -144,7 +139,7 @@ public class FSMBuilder {
 
   public static class Transition {
 
-    private final Machine parent;
+    private final StructuralDefinition parent;
     private final FSMStateName from;
     private FSMStateName[] toStates = new FSMStateName[0];
     private boolean toFinal = false;
@@ -152,7 +147,7 @@ public class FSMBuilder {
     private Optional<FSMStateChangeHandler> onEntry = Optional.absent();
     private Optional<FSMStateChangeHandler> onExit = Optional.absent();
 
-    private Transition(Machine parent, FSMStateName from) {
+    private Transition(StructuralDefinition parent, FSMStateName from) {
       this.parent = parent;
       this.from = from;
     }
@@ -177,7 +172,7 @@ public class FSMBuilder {
       return this;
     }
 
-    public Machine buildTransition() throws FSMException {
+    public StructuralDefinition buildTransition() throws FSMException {
       if (toStates == null) {
         throw new FSMException("to states not registered");
       }
@@ -186,25 +181,25 @@ public class FSMBuilder {
     }
   }
 
-  public static class Handlers {
+  public static class SemanticDefinition {
 
     private final Map<Class, Set<Class>> negativeBasicEvents = new HashMap<>();
     private final Map<Class, Set<Class>> positiveBasicEvents = new HashMap<>();
-    private final Map<Class, Set<Class>> positivePatternEvents = new HashMap<>();
-    private final Map<Class, Set<Class>> negativePatternEvents = new HashMap<>();
+    private final Map<Class, Set<Pair<Class, Class>>> positivePatternEvents = new HashMap<>();
+    private final Map<Class, Set<Pair<Class, Class>>> negativePatternEvents = new HashMap<>();
 
-    private FSMBasicEventHandler fallbackEventHandler = FSMachine.fallbackEventHandler;
-    private FSMPatternEventHandler fallbackMsgHandler = FSMachine.fallbackMsgHandler;
+    private FSMBasicEventHandler defaultFallbackBasicEvent = FSMachine.defaultFallbackBasicEvent;
+    private FSMPatternEventHandler defaultFallbackPatternEvent = FSMachine.defaultFallbackPatternEvent;
     private final Table<Class, FSMStateName, FSMBasicEventHandler> positiveBasicEventHandlers = HashBasedTable.create();
     private final Map<Class, FSMBasicEventHandler> positiveBasicFallbackHandlers = new HashMap<>();
     private final Table<Class, FSMStateName, FSMBasicEventHandler> negativeBasicEventHandlers = HashBasedTable.create();
     private final Map<Class, FSMBasicEventHandler> negativeBasicFallback = new HashMap<>();
-    private final Table<Class, FSMStateName, FSMPatternEventHandler> positivePatternEventHandlers = HashBasedTable.create();
-    private final Map<Class, FSMPatternEventHandler> positivePatternFallback = new HashMap<>();
-    private final Table<Class, FSMStateName, FSMPatternEventHandler> negativePatternEventHandlers = HashBasedTable.create();
-    private final Map<Class, FSMPatternEventHandler> negativePatternFallback = new HashMap<>();
+    private final Table<Pair<Class, Class>, FSMStateName, FSMPatternEventHandler> positivePatternEventHandlers = HashBasedTable.create();
+    private final Map<Pair<Class, Class>, FSMPatternEventHandler> positivePatternFallback = new HashMap<>();
+    private final Table<Pair<Class, Class>, FSMStateName, FSMPatternEventHandler> negativePatternEventHandlers = HashBasedTable.create();
+    private final Map<Pair<Class, Class>, FSMPatternEventHandler> negativePatternFallback = new HashMap<>();
 
-    public Handlers() {
+    public SemanticDefinition() {
     }
 
     public Port positivePort(Class portType) {
@@ -215,17 +210,17 @@ public class FSMBuilder {
       return new Port(this, portType, false);
     }
     
-    public Handlers defaultFallback(FSMBasicEventHandler eventHandler, FSMPatternEventHandler msgHandler) {
-      fallbackEventHandler = eventHandler;
-      fallbackMsgHandler = msgHandler;
+    public SemanticDefinition defaultFallback(FSMBasicEventHandler eventHandler, FSMPatternEventHandler msgHandler) {
+      defaultFallbackBasicEvent = eventHandler;
+      defaultFallbackPatternEvent = msgHandler;
       return this;
     }
 
     private void buildPort(Class portType, boolean pp, 
       Map<Class, Map<FSMStateName, FSMBasicEventHandler>> basicHandlers,
-      Map<Class, Map<FSMStateName, FSMPatternEventHandler>> patternHandlers, 
+      Map<Pair<Class, Class>, Map<FSMStateName, FSMPatternEventHandler>> patternHandlers, 
       Map<Class, FSMBasicEventHandler> basicFallback, 
-      Map<Class, FSMPatternEventHandler> patternFallback) throws FSMException {
+      Map<Pair<Class, Class>, FSMPatternEventHandler> patternFallback) throws FSMException {
       if (pp) {
         positiveBasicEvents.put(portType, basicHandlers.keySet());
         for (Map.Entry<Class, Map<FSMStateName, FSMBasicEventHandler>> e : basicHandlers.entrySet()) {
@@ -239,7 +234,7 @@ public class FSMBuilder {
         positiveBasicFallbackHandlers.putAll(basicFallback);
         
         positivePatternEvents.put(portType, patternHandlers.keySet());
-        for (Map.Entry<Class, Map<FSMStateName, FSMPatternEventHandler>> e : patternHandlers.entrySet()) {
+        for (Map.Entry<Pair<Class, Class>, Map<FSMStateName, FSMPatternEventHandler>> e : patternHandlers.entrySet()) {
           if (positivePatternEventHandlers.containsRow(e.getKey())) {
             throw new FSMException("currently we do not allow same event in different ports(besides pos/neg");
           }
@@ -261,7 +256,7 @@ public class FSMBuilder {
         negativeBasicFallback.putAll(basicFallback);
         
         negativePatternEvents.put(portType, patternHandlers.keySet());
-        for (Map.Entry<Class, Map<FSMStateName, FSMPatternEventHandler>> e : patternHandlers.entrySet()) {
+        for (Map.Entry<Pair<Class, Class>, Map<FSMStateName, FSMPatternEventHandler>> e : patternHandlers.entrySet()) {
           if (negativePatternEventHandlers.containsRow(e.getKey())) {
             throw new FSMException("currently we do not allow same event in different ports(besides pos/neg");
           }
@@ -276,16 +271,16 @@ public class FSMBuilder {
 
   public static class Port {
 
-    private final Handlers parent;
+    private final SemanticDefinition parent;
     private final Class portType;
     private final boolean pp;
 
     private final Map<Class, Map<FSMStateName, FSMBasicEventHandler>> basicHandlers = new HashMap<>();
     private final Map<Class, FSMBasicEventHandler> basicFallback = new HashMap<>();
-    private final Map<Class, Map<FSMStateName, FSMPatternEventHandler>> patternHandlers = new HashMap<>();
-    private final Map<Class, FSMPatternEventHandler> patternFallback = new HashMap<>();
+    private final Map<Pair<Class, Class>, Map<FSMStateName, FSMPatternEventHandler>> patternHandlers = new HashMap<>();
+    private final Map<Pair<Class, Class>, FSMPatternEventHandler> patternFallback = new HashMap<>();
 
-    public Port(Handlers parent, Class portType, boolean pp) {
+    public Port(SemanticDefinition parent, Class portType, boolean pp) {
       this.parent = parent;
       this.portType = portType;
       this.pp = pp;
@@ -307,15 +302,15 @@ public class FSMBuilder {
       }
     }
     
-    private void buildPatternEvent(Class eventType, Map<FSMStateName, FSMPatternEventHandler> handlers,
+    private void buildPatternEvent(Class contentType, Class containerType, Map<FSMStateName, FSMPatternEventHandler> handlers,
       Optional<FSMPatternEventHandler> fallback) {
-      patternHandlers.put(eventType, handlers);
+      patternHandlers.put(Pair.with(contentType, containerType), handlers);
       if (fallback.isPresent()) {
-        patternFallback.put(eventType, fallback.get());
+        patternFallback.put(Pair.with(contentType, containerType), fallback.get());
       }
     }
 
-    public Handlers buildPort() throws FSMException {
+    public SemanticDefinition buildPort() throws FSMException {
       parent.buildPort(portType, pp, basicHandlers, patternHandlers, basicFallback, patternFallback);
       return parent;
     }
@@ -331,6 +326,10 @@ public class FSMBuilder {
     private BasicEvent(Port parent, Class eventType) {
       this.parent = parent;
       this.eventType = eventType;
+    }
+    
+    public BasicEvent subscribeOnStart(FSMBasicEventHandler handler) throws FSMException {
+      return subscribe(handler, FSMBasicStateNames.START);
     }
 
     public BasicEvent subscribe(FSMBasicEventHandler handler, FSMStateName... states) throws FSMException {
@@ -354,11 +353,15 @@ public class FSMBuilder {
     }
 
     //*********SHORTCUTS**********
-    public BasicEvent onEvent(Class eventType) {
+    public BasicEvent onBasicEvent(Class eventType) {
       return buildEvent().onBasicEvent(eventType);
     }
+    
+    public PatternEvent onPatternEvent(Class contentType, Class containerType) {
+      return buildEvent().onPatternEvent(contentType, containerType);
+    }
 
-    public Handlers buildEvents() throws FSMException {
+    public SemanticDefinition buildEvents() throws FSMException {
       parent.buildBasicEvent(eventType, handlers, fallback);
       return parent.buildPort();
     }
@@ -394,32 +397,34 @@ public class FSMBuilder {
     }
 
     public Port buildEvent() {
-      parent.buildPatternEvent(contentType, handlers, fallback);
+      parent.buildPatternEvent(contentType, containerType, handlers, fallback);
       return parent;
     }
 
     //*********SHORTCUTS**********
+    public BasicEvent onBasicEvent(Class eventType) {
+      return buildEvent().onBasicEvent(eventType);
+    }
+    
     public PatternEvent onPatternEvent(Class contentType, Class containerType) {
       return buildEvent().onPatternEvent(contentType, containerType);
     }
 
-    public Handlers buildPatternEvents() throws FSMException {
-      parent.buildPatternEvent(contentType, handlers, fallback);
+    public SemanticDefinition buildEvents() throws FSMException {
+      parent.buildPatternEvent(contentType, containerType, handlers, fallback);
       return parent.buildPort();
     }
   }
 
-  public static Machine machine() {
-    return new Machine();
+  public static StructuralDefinition structuralDef() {
+    return new StructuralDefinition();
   }
 
-  public static Handlers events() {
-    return new Handlers();
+  public static SemanticDefinition semanticDef() {
+    return new SemanticDefinition();
   }
 
-  public static FSMachineDef fsmDef(String fsmName, Machine m, Handlers h) throws FSMException {
-    FSMDefId id = FSMIds.getDefId(fsmName);
-
+  private static FSMachineDef fsmDef(FSMIdentifierFactory fsmIdFactory, String fsmName, StructuralDefinition m, SemanticDefinition h) throws FSMException {
     if (!m.transitionTable.containsRow(FSMBasicStateNames.START)) {
       throw new FSMException("START state not defined");
     }
@@ -434,24 +439,25 @@ public class FSMBuilder {
     }
 
     for (Map.Entry<FSMStateName, FSMStateDef> stateDef : m.states.entrySet()) {
-      stateDef.getValue().setNegativeHandlers(h.negativeBasicEventHandlers.column(stateDef.getKey()));
-      stateDef.getValue().setPositiveHandlers(h.positiveBasicEventHandlers.column(stateDef.getKey()));
-      stateDef.getValue().setNegativeNetworkHandlers(h.negativePatternEventHandlers.column(stateDef.getKey()));
-      stateDef.getValue().setPositiveNetworkHandlers(h.positivePatternEventHandlers.column(stateDef.getKey()));
+      stateDef.getValue().setNegativeBasicHandlers(h.negativeBasicEventHandlers.column(stateDef.getKey()));
+      stateDef.getValue().setPositiveBasicHandlers(h.positiveBasicEventHandlers.column(stateDef.getKey()));
+      stateDef.getValue().setNegativePatternHandlers(h.negativePatternEventHandlers.column(stateDef.getKey()));
+      stateDef.getValue().setPositivePatternHandlers(h.positivePatternEventHandlers.column(stateDef.getKey()));
     }
 
-    FSMachineDef fsmDef = FSMachineDef.instance(id, m.states, m.transitionTable,
-      h.fallbackEventHandler, h.fallbackMsgHandler,
+    FSMachineDef fsmDef = FSMachineDef.definition(fsmIdFactory, fsmName, m.states, m.transitionTable,
+      h.defaultFallbackBasicEvent, h.defaultFallbackPatternEvent,
       h.positiveBasicFallbackHandlers, h.negativeBasicFallback,
       h.positivePatternFallback, h.negativePatternFallback);
 
     return fsmDef;
   }
 
-  public static MultiFSM multiFSM(String fsmName, Machine m, Handlers h, FSMExternalState es,
-    FSMInternalStateBuilder isb, OnFSMExceptionAction oexa, FSMIdExtractor fsmIdExtractor) throws FSMException {
+  public static MultiFSM multiFSM(FSMIdentifierFactory fsmIdFactory, String fsmName, StructuralDefinition m, 
+    SemanticDefinition h, FSMExternalState es,
+    FSMInternalStateBuilder isb, OnFSMExceptionAction oexa, BaseIdExtractor fsmIdExtractor) throws FSMException {
 
-    FSMachineDef fsmDef = fsmDef(fsmName, m, h);
+    FSMachineDef fsmDef = fsmDef(fsmIdFactory, fsmName, m, h);
 
     MultiFSM multiFSM = MultiMachine.instance()
       .setPositiveBasicEvents(h.positiveBasicEvents)

@@ -39,7 +39,7 @@ public class MultiFSMComp extends ComponentDefinition {
     fsm.setProxy(proxy);
 
     subscribe(handleStart, control);
-    fsm.setupPortsAndHandlers();
+    fsm.setupHandlers();
   }
 
   Handler handleStart = new Handler<Start>() {

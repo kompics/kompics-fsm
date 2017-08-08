@@ -20,6 +20,7 @@ package se.sics.kompics.fsm;
 
 import com.google.common.base.Optional;
 import java.util.Map;
+import org.javatuples.Pair;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
@@ -36,25 +37,26 @@ public class FSMState {
   private final FSMExternalState es;
   private final FSMInternalState is;
   
-  private final Map<Class, FSMBasicEventHandler> positiveHandlers;
-  private final Map<Class, FSMBasicEventHandler> negativeHandlers;
+  private final Map<Class, FSMBasicEventHandler> positiveBasicHandlers;
+  private final Map<Class, FSMBasicEventHandler> negativeBasicHandlers;
   
-  private final Map<Class, FSMPatternEventHandler> positiveMsgHandlers;
-  private final Map<Class, FSMPatternEventHandler> negativeMsgHandlers;
+  private final Map<Pair<Class, Class>, FSMPatternEventHandler> positivePatternHandlers;
+  private final Map<Pair<Class, Class>, FSMPatternEventHandler> negativePatternHandlers;
   
   public FSMState(FSMStateName state, Optional<FSMStateChangeHandler> onEntry, Optional<FSMStateChangeHandler> onExit,
     FSMExternalState es, FSMInternalState is,
-    Map<Class, FSMBasicEventHandler> positiveHandlers, Map<Class, FSMBasicEventHandler> negativeHandlers,
-    Map<Class, FSMPatternEventHandler> positiveMsgHandlers, Map<Class, FSMPatternEventHandler> negativeMsgHandlers) {
+    Map<Class, FSMBasicEventHandler> positiveBasicHandlers, Map<Class, FSMBasicEventHandler> negativeBasicHandlers,
+    Map<Pair<Class, Class>, FSMPatternEventHandler> positivePatternHandlers, 
+    Map<Pair<Class, Class>, FSMPatternEventHandler> negativePatternHandlers) {
     this.state = state;
     this.onEntry = onEntry;
     this.onExit = onExit;
     this.es = es;
     this.is = is;
-    this.positiveHandlers = positiveHandlers;
-    this.negativeHandlers = negativeHandlers;
-    this.positiveMsgHandlers = positiveMsgHandlers;
-    this.negativeMsgHandlers = negativeMsgHandlers;
+    this.positiveBasicHandlers = positiveBasicHandlers;
+    this.negativeBasicHandlers = negativeBasicHandlers;
+    this.positivePatternHandlers = positivePatternHandlers;
+    this.negativePatternHandlers = negativePatternHandlers;
   }
   
   public void onEntry(FSMStateName from) {
@@ -70,7 +72,7 @@ public class FSMState {
   }
   
   public Optional<FSMStateName> handlePositive(FSMEvent event) throws FSMException {
-    FSMBasicEventHandler handler = positiveHandlers.get(event.getClass());
+    FSMBasicEventHandler handler = positiveBasicHandlers.get(event.getClass());
     if (handler == null) {
       return Optional.absent();
     }
@@ -79,7 +81,7 @@ public class FSMState {
   }
   
   public Optional<FSMStateName> handleNegative(FSMEvent event) throws FSMException {
-    FSMBasicEventHandler handler = negativeHandlers.get(event.getClass());
+    FSMBasicEventHandler handler = negativeBasicHandlers.get(event.getClass());
     if (handler == null) {
       return Optional.absent();
     }
@@ -89,7 +91,7 @@ public class FSMState {
   
   public Optional<FSMStateName> handlePositive(FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
     throws FSMException {
-    FSMPatternEventHandler handler = positiveMsgHandlers.get(payload.getClass());
+    FSMPatternEventHandler handler = positivePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
       return Optional.absent();
     }
@@ -99,7 +101,7 @@ public class FSMState {
   
   public Optional<FSMStateName> handleNegative(FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
     throws FSMException {
-    FSMPatternEventHandler handler = negativeMsgHandlers.get(payload.getClass());
+    FSMPatternEventHandler handler = negativePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
       return Optional.absent();
     }

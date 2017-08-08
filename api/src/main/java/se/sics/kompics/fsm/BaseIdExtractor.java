@@ -19,14 +19,11 @@
 package se.sics.kompics.fsm;
 
 import com.google.common.base.Optional;
-import java.util.Set;
-import se.sics.kompics.fsm.id.FSMDefId;
-import se.sics.kompics.fsm.id.FSMId;
+import se.sics.kompics.id.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface FSMIdExtractor<E extends FSMEvent> {
-  public void set(Set<Class> events, Set<Class> patternEvents);
-  public Optional<FSMId> fromEvent(FSMDefId fsmdId, E event) throws FSMException;
+public interface BaseIdExtractor {
+  public Optional<Identifier> fromEvent(FSMEvent event) throws FSMException;
 }

@@ -18,11 +18,11 @@
  */
 package se.sics.kompics.fsm;
 
-import se.sics.kompics.fsm.id.FSMId;
+import se.sics.kompics.fsm.id.FSMIdentifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public interface FSMInternalStateBuilder {
-  public FSMInternalState newState(FSMId fsmId);
+  public FSMInternalState newState(FSMIdentifier fsmId);
 }

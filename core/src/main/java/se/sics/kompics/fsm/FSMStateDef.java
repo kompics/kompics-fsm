@@ -20,6 +20,7 @@ package se.sics.kompics.fsm;
 
 import com.google.common.base.Optional;
 import java.util.Map;
+import org.javatuples.Pair;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
 import se.sics.kompics.fsm.handler.FSMStateChangeHandler;
@@ -32,11 +33,11 @@ public class FSMStateDef {
   private Optional<FSMStateChangeHandler> onEntry;
   private Optional<FSMStateChangeHandler> onExit;
   
-  private Map<Class, FSMBasicEventHandler> positiveHandlers;
-  private Map<Class, FSMBasicEventHandler> negativeHandlers;
+  private Map<Class, FSMBasicEventHandler> positiveBasicHandlers;
+  private Map<Class, FSMBasicEventHandler> negativeBasicHandlers;
   
-  private Map<Class, FSMPatternEventHandler> positiveNetworkHandlers;
-  private Map<Class, FSMPatternEventHandler> negativeNetworkHandlers;
+  private Map<Pair<Class, Class>, FSMPatternEventHandler> positivePatternHandlers;
+  private Map<Pair<Class, Class>, FSMPatternEventHandler> negativePatternHandlers;
 
   private FSMStateDef() {}
   
@@ -50,23 +51,23 @@ public class FSMStateDef {
     return this;
   }
 
-  public FSMStateDef setPositiveHandlers(Map<Class, FSMBasicEventHandler> positiveHandlers) {
-    this.positiveHandlers = positiveHandlers;
+  public FSMStateDef setPositiveBasicHandlers(Map<Class, FSMBasicEventHandler> positiveHandlers) {
+    this.positiveBasicHandlers = positiveHandlers;
     return this;
   }
 
-  public FSMStateDef setNegativeHandlers(Map<Class, FSMBasicEventHandler> negativeHandlers) {
-    this.negativeHandlers = negativeHandlers;
+  public FSMStateDef setNegativeBasicHandlers(Map<Class, FSMBasicEventHandler> negativeHandlers) {
+    this.negativeBasicHandlers = negativeHandlers;
     return this;
   }
 
-  public FSMStateDef setPositiveNetworkHandlers(Map<Class, FSMPatternEventHandler> positiveNetworkHandlers) {
-    this.positiveNetworkHandlers = positiveNetworkHandlers;
+  public FSMStateDef setPositivePatternHandlers(Map<Pair<Class, Class>, FSMPatternEventHandler> positivePatternHandlers) {
+    this.positivePatternHandlers = positivePatternHandlers;
     return this;
   }
 
-  public FSMStateDef setNegativeNetworkHandlers(Map<Class, FSMPatternEventHandler> negativeNetworkHandlers) {
-    this.negativeNetworkHandlers = negativeNetworkHandlers;
+  public FSMStateDef setNegativePatternHandlers(Map<Pair<Class, Class>, FSMPatternEventHandler> negativePatternHandlers) {
+    this.negativePatternHandlers = negativePatternHandlers;
     return this;
   }
   
@@ -76,6 +77,6 @@ public class FSMStateDef {
   
   protected FSMState build(FSMStateName state, FSMExternalState es, FSMInternalState is) throws FSMException {
     return new FSMState(state, onEntry, onExit, es, is,
-      positiveHandlers, negativeHandlers, positiveNetworkHandlers, negativeNetworkHandlers);
+      positiveBasicHandlers, negativeBasicHandlers, positivePatternHandlers, negativePatternHandlers);
   }
 }

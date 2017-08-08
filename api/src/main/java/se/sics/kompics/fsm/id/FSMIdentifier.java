@@ -18,33 +18,33 @@
  */
 package se.sics.kompics.fsm.id;
 
-import com.google.common.io.BaseEncoding;
-import java.util.Arrays;
-import se.sics.kompics.util.Identifier;
+import java.util.Objects;
+import se.sics.kompics.id.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class FSMDefId {
-  public final byte[] fsmDefId;
-
-  public FSMDefId(byte[] fsmDefId) {
+public class FSMIdentifier implements Identifier {
+  public final Identifier fsmDefId;
+  public final Identifier baseId;
+  
+  public FSMIdentifier(Identifier fsmDefId, Identifier baseId) {
     this.fsmDefId = fsmDefId;
+    this.baseId = baseId;
   }
-  
-  public FSMId getFSMId(Identifier baseId) {
-    return new FSMId(fsmDefId, baseId);
-  }
-  
+
   @Override
-  public String toString() {
-    return "<fsm,md:" + BaseEncoding.base16().encode(fsmDefId) + ">";
+  public int partition(int nrPartitions) {
+    long longP = fsmDefId.partition(nrPartitions);
+    int intP = (int)(longP + baseId.partition(nrPartitions)) % nrPartitions;
+    return intP;
   }
 
   @Override
   public int hashCode() {
-    int hash = 7;
-    hash = 61 * hash + Arrays.hashCode(this.fsmDefId);
+    int hash = 3;
+    hash = 79 * hash + Objects.hashCode(this.fsmDefId);
+    hash = 79 * hash + Objects.hashCode(this.baseId);
     return hash;
   }
 
@@ -56,10 +56,28 @@ public class FSMDefId {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final FSMDefId other = (FSMDefId) obj;
-    if (!Arrays.equals(this.fsmDefId, other.fsmDefId)) {
+    final FSMIdentifier other = (FSMIdentifier) obj;
+    if (!Objects.equals(this.fsmDefId, other.fsmDefId)) {
+      return false;
+    }
+    if (!Objects.equals(this.baseId, other.baseId)) {
       return false;
     }
     return true;
+  }
+  
+  @Override
+  public int compareTo(Identifier o) {
+    FSMIdentifier that = (FSMIdentifier)o;
+    int r = this.fsmDefId.compareTo(that.fsmDefId);
+    if(r == 0) {
+      r = this.baseId.compareTo(that.baseId);
+    }
+    return r;
+  }
+
+  @Override
+  public String toString() {
+    return "<def:" + fsmDefId + ",base:" + baseId + ">";
   }
 }

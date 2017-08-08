@@ -10,11 +10,5 @@
   <artifactId>api</artifactId>
   <packaging>jar</packaging>
   <name>KFSM API</name>
-  <properties>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-  </properties>
     
-  <dependencies>
-  </dependencies>
 </project>
