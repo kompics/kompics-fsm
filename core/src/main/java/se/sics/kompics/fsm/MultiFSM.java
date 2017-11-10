@@ -33,7 +33,7 @@ import se.sics.kompics.ComponentProxy;
 import se.sics.kompics.Handler;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.id.FSMIdentifier;
-import se.sics.kompics.id.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

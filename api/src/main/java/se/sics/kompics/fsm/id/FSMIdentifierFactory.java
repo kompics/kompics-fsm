@@ -21,9 +21,9 @@ package se.sics.kompics.fsm.id;
 import java.util.HashMap;
 import java.util.Map;
 import se.sics.kompics.fsm.FSMException;
-import se.sics.kompics.id.ByteId;
-import se.sics.kompics.id.Identifier;
-import se.sics.kompics.id.IdentifierFactory;
+import se.sics.kompics.util.ByteIdentifier;
+import se.sics.kompics.util.Identifier;
+import se.sics.kompics.util.IdentifierFactory;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -39,7 +39,7 @@ public interface FSMIdentifierFactory extends IdentifierFactory {
       if (fsmId >= 255) {
         throw new FSMException("out of id space");
       }
-      Identifier fsmDefId = new ByteId(fsmId++);
+      Identifier fsmDefId = new ByteIdentifier(fsmId++);
       if (reservedFSMDIds.containsKey(fsmName)) {
         throw new FSMException("clash - owner name:" + fsmName + " is registered with:" + reservedFSMDIds.get(fsmName));
       }

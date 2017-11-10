@@ -18,7 +18,7 @@ import se.sics.kompics.fsm.core.PingCtrlPort;
 import se.sics.kompics.fsm.core.PingFSM;
 import se.sics.kompics.fsm.core.PingPort;
 import se.sics.kompics.fsm.id.FSMIdentifierFactory;
-import se.sics.kompics.id.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

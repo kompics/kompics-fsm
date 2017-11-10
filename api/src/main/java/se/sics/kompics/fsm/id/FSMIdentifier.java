@@ -19,7 +19,7 @@
 package se.sics.kompics.fsm.id;
 
 import java.util.Objects;
-import se.sics.kompics.id.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

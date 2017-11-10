@@ -14,11 +14,11 @@ import org.javatuples.Pair;
 import se.sics.kompics.Kompics;
 import se.sics.kompics.config.Config;
 import se.sics.kompics.fsm.FSMException;
+import se.sics.kompics.fsm.core.IntId;
 import se.sics.kompics.fsm.core.PingFSM;
 import se.sics.kompics.fsm.core.PongFSM;
 import se.sics.kompics.fsm.id.FSMIdentifierFactory;
-import se.sics.kompics.id.Identifier;
-import se.sics.kompics.id.IntId;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

@@ -5,7 +5,7 @@
  */
 package se.sics.kompics.fsm.core;
 
-import se.sics.kompics.id.Identifier;
+import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
