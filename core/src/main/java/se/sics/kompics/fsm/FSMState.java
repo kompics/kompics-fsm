@@ -116,4 +116,9 @@ public class FSMState {
   public FSMStateName fallback(FSMEvent payload, PatternExtractor<Class, FSMEvent> container, FSMPatternEventHandler fallback) throws FSMException {
     return fallback.handle(state, es, is, payload, container);
   }
+  
+  //*********************************************TESTING_HELPERS********************************************************
+  public FSMInternalState getFSMInternalState() {
+    return is;
+  }
 }

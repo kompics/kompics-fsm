@@ -180,4 +180,9 @@ public class FSMachine {
   public FSMStateName getState() {
     return currentState.getValue0();
   }
+  
+  //*********************************************TESTING_HELPERS********************************************************
+  public FSMInternalState getFSMInternalState() {
+    return currentState.getValue1().getFSMInternalState();
+  }
 }

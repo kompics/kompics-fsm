@@ -260,4 +260,11 @@ public class MultiFSM {
   public int size() {
     return fsms.size();
   }
+  
+  //*********************************************TESTING_HELPERS********************************************************
+  public FSMInternalState getFSMInternalState(Identifier baseId) {
+    FSMIdentifier fsmId = fsmDef.getFsmId(baseId);
+    FSMachine fsm = fsms.get(fsmId);
+    return fsm.getFSMInternalState();
+  }
 }
