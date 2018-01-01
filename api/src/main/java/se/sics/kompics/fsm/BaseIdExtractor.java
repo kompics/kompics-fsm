@@ -19,11 +19,12 @@
 package se.sics.kompics.fsm;
 
 import com.google.common.base.Optional;
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.util.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public interface BaseIdExtractor {
-  public Optional<Identifier> fromEvent(FSMEvent event) throws FSMException;
+  public Optional<Identifier> fromEvent(KompicsEvent event) throws FSMException;
 }

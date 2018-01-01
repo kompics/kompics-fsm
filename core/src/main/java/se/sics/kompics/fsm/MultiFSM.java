@@ -31,6 +31,7 @@ import org.slf4j.MDC;
 import se.sics.kompics.ClassMatchedHandler;
 import se.sics.kompics.ComponentProxy;
 import se.sics.kompics.Handler;
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.id.FSMIdentifier;
 import se.sics.kompics.util.Identifier;
@@ -71,7 +72,7 @@ public class MultiFSM {
     }
   };
 
-  private Optional<FSMachine> getFSM(FSMEvent event) throws FSMException {
+  private Optional<FSMachine> getFSM(KompicsEvent event) throws FSMException {
     Optional<Identifier> baseId = fsmIdExtractor.fromEvent(event);
     if (!baseId.isPresent()) {
       LOG.warn("not handling event:{}", event);
@@ -133,12 +134,14 @@ public class MultiFSM {
     };
   }
 
-  private <P extends FSMEvent, C extends PatternExtractor<Class<Object>, P>> ClassMatchedHandler patternEventOnPositivePort(Class contentType, Class<C> containerType) {
+  private <P extends KompicsEvent, C extends PatternExtractor<Class<Object>, P>> 
+  ClassMatchedHandler patternEventOnPositivePort(Class contentType, Class<C> containerType) {
     return new ClassMatchedHandler<P, C>(containerType, contentType) {
       @Override
       public void handle(P payload, C container) {
         MDC.put(FSM_NAME, fsmDef.fsmName);
         try {
+          
           Optional<FSMachine> fsm = getFSM(payload);
           if (fsm.isPresent()) {
             MDC.put(FSM_ID, fsm.get().fsmId.toString());

@@ -21,6 +21,7 @@ package se.sics.kompics.fsm;
 import com.google.common.base.Optional;
 import java.util.Map;
 import org.javatuples.Pair;
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
@@ -71,7 +72,7 @@ public class FSMState {
     }
   }
   
-  public Optional<FSMStateName> handlePositive(FSMEvent event) throws FSMException {
+  public Optional<FSMStateName> handlePositive(KompicsEvent event) throws FSMException {
     FSMBasicEventHandler handler = positiveBasicHandlers.get(event.getClass());
     if (handler == null) {
       return Optional.absent();
@@ -80,7 +81,7 @@ public class FSMState {
     return Optional.of(next);
   }
   
-  public Optional<FSMStateName> handleNegative(FSMEvent event) throws FSMException {
+  public Optional<FSMStateName> handleNegative(KompicsEvent event) throws FSMException {
     FSMBasicEventHandler handler = negativeBasicHandlers.get(event.getClass());
     if (handler == null) {
       return Optional.absent();
@@ -89,7 +90,7 @@ public class FSMState {
     return Optional.of(next);
   }
   
-  public Optional<FSMStateName> handlePositive(FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
+  public Optional<FSMStateName> handlePositive(KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container)
     throws FSMException {
     FSMPatternEventHandler handler = positivePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
@@ -99,7 +100,7 @@ public class FSMState {
     return Optional.of(next);
   }
   
-  public Optional<FSMStateName> handleNegative(FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
+  public Optional<FSMStateName> handleNegative(KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container)
     throws FSMException {
     FSMPatternEventHandler handler = negativePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
@@ -109,11 +110,11 @@ public class FSMState {
     return Optional.of(next);
   }
   
-  public FSMStateName fallback(FSMEvent event, FSMBasicEventHandler fallback) throws FSMException {
+  public FSMStateName fallback(KompicsEvent event, FSMBasicEventHandler fallback) throws FSMException {
     return fallback.handle(state, es, is, event);
   }
 
-  public FSMStateName fallback(FSMEvent payload, PatternExtractor<Class, FSMEvent> container, FSMPatternEventHandler fallback) throws FSMException {
+  public FSMStateName fallback(KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container, FSMPatternEventHandler fallback) throws FSMException {
     return fallback.handle(state, es, is, payload, container);
   }
   

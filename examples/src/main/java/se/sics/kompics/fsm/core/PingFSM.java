@@ -9,6 +9,7 @@ import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.kompics.ComponentProxy;
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.Negative;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.Positive;
@@ -67,7 +68,7 @@ public class PingFSM {
   
   private static final BaseIdExtractor bidx = new BaseIdExtractor() {
     @Override
-    public Optional<Identifier> fromEvent(FSMEvent event) throws FSMException {
+    public Optional<Identifier> fromEvent(KompicsEvent event) throws FSMException {
       if (event instanceof Event) {
         return Optional.of(((Event)event).getPingBaseFSMId());
       }

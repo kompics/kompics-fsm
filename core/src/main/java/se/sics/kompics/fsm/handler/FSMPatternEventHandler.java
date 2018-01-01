@@ -18,8 +18,8 @@
  */
 package se.sics.kompics.fsm.handler;
 
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
-import se.sics.kompics.fsm.FSMEvent;
 import se.sics.kompics.fsm.FSMException;
 import se.sics.kompics.fsm.FSMExternalState;
 import se.sics.kompics.fsm.FSMInternalState;
@@ -28,7 +28,7 @@ import se.sics.kompics.fsm.FSMStateName;
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface FSMPatternEventHandler <ES extends FSMExternalState, IS extends FSMInternalState, E extends FSMEvent> {
+public interface FSMPatternEventHandler <ES extends FSMExternalState, IS extends FSMInternalState, E extends KompicsEvent> {
   public FSMStateName handle(FSMStateName state, ES es, IS is, E payload, PatternExtractor<Class, E> container) throws FSMException;
 }
 

@@ -24,6 +24,7 @@ import java.util.Map;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;
@@ -68,7 +69,7 @@ public class FSMachine {
     this.fallbackNegativePatternEvents = fallbackNegativePatternEvents;
   }
 
-  public void handlePositive(FSMEvent event) throws FSMException {
+  public void handlePositive(KompicsEvent event) throws FSMException {
     LOG.trace("handle event:{}", event);
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(event);
     if (!next.isPresent()) {
@@ -83,7 +84,7 @@ public class FSMachine {
     handle(next.get(), event);
   }
 
-  public void handleNegative(FSMEvent event) throws FSMException {
+  public void handleNegative(KompicsEvent event) throws FSMException {
     LOG.trace("handle event:{}", event);
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(event);
     if (!next.isPresent()) {
@@ -98,7 +99,7 @@ public class FSMachine {
     handle(next.get(), event);
   }
 
-  private void handle(FSMStateName next, FSMEvent event) throws FSMException {
+  private void handle(FSMStateName next, KompicsEvent event) throws FSMException {
     if (FSMBasicStateNames.FINAL.equals(next)) {
       oka.kill(fsmId);
       return;
@@ -112,7 +113,7 @@ public class FSMachine {
     currentState = Pair.with(next, states.get(next));
   }
 
-  public void handlePositive(FSMEvent payload, PatternExtractor container) throws
+  public void handlePositive(KompicsEvent payload, PatternExtractor container) throws
     FSMException {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(payload, container);
@@ -128,7 +129,7 @@ public class FSMachine {
     handle(next.get(), payload, container);
   }
 
-  public void handleNegative(FSMEvent payload, PatternExtractor container) throws
+  public void handleNegative(KompicsEvent payload, PatternExtractor container) throws
     FSMException {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(payload, container);
@@ -144,7 +145,7 @@ public class FSMachine {
     handle(next.get(), payload, container);
   }
 
-  private void handle(FSMStateName next, FSMEvent payload, PatternExtractor<Class, FSMEvent> container)
+  private void handle(FSMStateName next, KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container)
     throws FSMException {
     if (FSMBasicStateNames.FINAL.equals(next)) {
       oka.kill(fsmId);
