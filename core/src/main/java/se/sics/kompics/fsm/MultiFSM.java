@@ -18,11 +18,11 @@
  */
 package se.sics.kompics.fsm;
 
-import com.google.common.base.Optional;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public class MultiFSM {
     Optional<Identifier> baseId = fsmIdExtractor.fromEvent(event);
     if (!baseId.isPresent()) {
       LOG.warn("not handling event:{}", event);
-      return Optional.absent();
+      return Optional.empty();
     }
     FSMIdentifier fsmId = fsmDef.getFsmId(baseId.get());
     FSMachine fsm = fsms.get(fsmId);

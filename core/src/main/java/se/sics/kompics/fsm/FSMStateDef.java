@@ -18,8 +18,8 @@
  */
 package se.sics.kompics.fsm;
 
-import com.google.common.base.Optional;
 import java.util.Map;
+import java.util.Optional;
 import org.javatuples.Pair;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
 import se.sics.kompics.fsm.handler.FSMPatternEventHandler;

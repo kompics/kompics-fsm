@@ -18,8 +18,8 @@
  */
 package se.sics.kompics.fsm;
 
-import com.google.common.base.Optional;
 import java.util.Map;
+import java.util.Optional;
 import org.javatuples.Pair;
 import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
@@ -75,7 +75,7 @@ public class FSMState {
   public Optional<FSMStateName> handlePositive(KompicsEvent event) throws FSMException {
     FSMBasicEventHandler handler = positiveBasicHandlers.get(event.getClass());
     if (handler == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     FSMStateName next = handler.handle(state, es, is, event);
     return Optional.of(next);
@@ -84,7 +84,7 @@ public class FSMState {
   public Optional<FSMStateName> handleNegative(KompicsEvent event) throws FSMException {
     FSMBasicEventHandler handler = negativeBasicHandlers.get(event.getClass());
     if (handler == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     FSMStateName next = handler.handle(state, es, is, event);
     return Optional.of(next);
@@ -94,7 +94,7 @@ public class FSMState {
     throws FSMException {
     FSMPatternEventHandler handler = positivePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     FSMStateName next = handler.handle(state, es, is, payload, container);
     return Optional.of(next);
@@ -104,7 +104,7 @@ public class FSMState {
     throws FSMException {
     FSMPatternEventHandler handler = negativePatternHandlers.get(Pair.with(payload.getClass(), container.getClass()));
     if (handler == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     FSMStateName next = handler.handle(state, es, is, payload, container);
     return Optional.of(next);

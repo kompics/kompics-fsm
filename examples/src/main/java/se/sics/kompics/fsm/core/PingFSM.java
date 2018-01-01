@@ -5,7 +5,7 @@
  */
 package se.sics.kompics.fsm.core;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.kompics.ComponentProxy;
@@ -72,7 +72,7 @@ public class PingFSM {
       if (event instanceof Event) {
         return Optional.of(((Event)event).getPingBaseFSMId());
       }
-      return Optional.absent();
+      return Optional.empty();
     }
   };
   

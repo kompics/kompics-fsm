@@ -18,13 +18,13 @@
  */
 package se.sics.kompics.fsm;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.javatuples.Pair;
 import se.sics.kompics.fsm.handler.FSMBasicEventHandler;
@@ -144,8 +144,8 @@ public class FSMBuilder {
     private FSMStateName[] toStates = new FSMStateName[0];
     private boolean toFinal = false;
 
-    private Optional<FSMStateChangeHandler> onEntry = Optional.absent();
-    private Optional<FSMStateChangeHandler> onExit = Optional.absent();
+    private Optional<FSMStateChangeHandler> onEntry = Optional.empty();
+    private Optional<FSMStateChangeHandler> onExit = Optional.empty();
 
     private Transition(StructuralDefinition parent, FSMStateName from) {
       this.parent = parent;
@@ -321,7 +321,7 @@ public class FSMBuilder {
     private final Port parent;
     private final Class eventType;
     private final Map<FSMStateName, FSMBasicEventHandler> handlers = new HashMap<>();
-    private Optional<FSMBasicEventHandler> fallback = Optional.absent();
+    private Optional<FSMBasicEventHandler> fallback = Optional.empty();
 
     private BasicEvent(Port parent, Class eventType) {
       this.parent = parent;
@@ -373,7 +373,7 @@ public class FSMBuilder {
     private final Class contentType;
     private final Class containerType;
     private final Map<FSMStateName, FSMPatternEventHandler> handlers = new HashMap<>();
-    private Optional<FSMPatternEventHandler> fallback = Optional.absent();
+    private Optional<FSMPatternEventHandler> fallback = Optional.empty();
 
     private PatternEvent(Port parent, Class contentType, Class containerType) {
       this.parent = parent;
