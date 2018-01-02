@@ -250,6 +250,11 @@ public class MultiFSM {
     return Pair.with(pPorts, nPorts);
   }
 
+  public boolean activeFSM(Identifier baseId) {
+    FSMIdentifier fsmId = fsmDef.getFsmId(baseId);
+    return fsms.containsKey(fsmId);
+  }
+  
   public FSMStateName getFSMState(Identifier baseId) {
     FSMIdentifier fsmId = fsmDef.getFsmId(baseId);
     FSMachine fsm = fsms.get(fsmId);
