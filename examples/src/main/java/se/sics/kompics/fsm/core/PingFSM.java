@@ -55,11 +55,11 @@ public class PingFSM {
   private static FSMBuilder.SemanticDefinition semanticDef() throws FSMException {
     return FSMBuilder.semanticDef()
       .negativePort(PingCtrlPort.class)
-        .onBasicEvent(StartPingEvent.class)
+        .basicEvent(StartPingEvent.class)
           .subscribeOnStart(Handlers.handleStart)
         .buildEvents()
       .positivePort(PingPort.class)
-        .onBasicEvent(BasicEvent.Pong.class)
+        .basicEvent(BasicEvent.Pong.class)
           .subscribe(Handlers.handleBasicPong, States.WAIT_BASIC_PONG)
         .onPatternEvent(BasicEvent.Pong.class, PatternEvent.class)
           .subscribe(Handlers.handlePatternPong, States.WAIT_PATTERN_PONG)

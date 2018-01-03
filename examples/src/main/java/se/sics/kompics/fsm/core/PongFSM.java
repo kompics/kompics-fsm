@@ -54,7 +54,7 @@ public class PongFSM {
   private static FSMBuilder.SemanticDefinition semanticDef() throws FSMException {
     return FSMBuilder.semanticDef()
       .negativePort(PingPort.class)
-        .onBasicEvent(BasicEvent.Ping.class)
+        .basicEvent(BasicEvent.Ping.class)
           .subscribeOnStart(Handlers.handleBasicPing)
           .subscribe(Handlers.handleBasicPing, States.WAIT_BASIC_PING)
         .onPatternEvent(BasicEvent.Ping.class, PatternEvent.class)

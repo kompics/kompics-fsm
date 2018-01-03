@@ -286,11 +286,11 @@ public class FSMBuilder {
       this.pp = pp;
     }
 
-    public BasicEvent onBasicEvent(Class eventType) {
+    public BasicEvent basicEvent(Class eventType) {
       return new BasicEvent(this, eventType);
     }
     
-    public PatternEvent onPatternEvent(Class contentType, Class containerType) {
+    public PatternEvent patternEvent(Class contentType, Class containerType) {
       return new PatternEvent(this, contentType, containerType);
     }
 
@@ -354,11 +354,11 @@ public class FSMBuilder {
 
     //*********SHORTCUTS**********
     public BasicEvent onBasicEvent(Class eventType) {
-      return buildEvent().onBasicEvent(eventType);
+      return buildEvent().basicEvent(eventType);
     }
     
     public PatternEvent onPatternEvent(Class contentType, Class containerType) {
-      return buildEvent().onPatternEvent(contentType, containerType);
+      return buildEvent().patternEvent(contentType, containerType);
     }
 
     public SemanticDefinition buildEvents() throws FSMException {
@@ -381,6 +381,10 @@ public class FSMBuilder {
       this.containerType = containerType;
     }
 
+    public PatternEvent subscribeOnStart(FSMPatternEventHandler handler) throws FSMException {
+      return subscribe(handler, FSMBasicStateNames.START);
+    }
+    
     public PatternEvent subscribe(FSMPatternEventHandler handler, FSMStateName... states) throws FSMException {
       for (FSMStateName state : states) {
         if (handlers.containsKey(state)) {
@@ -403,11 +407,11 @@ public class FSMBuilder {
 
     //*********SHORTCUTS**********
     public BasicEvent onBasicEvent(Class eventType) {
-      return buildEvent().onBasicEvent(eventType);
+      return buildEvent().basicEvent(eventType);
     }
     
     public PatternEvent onPatternEvent(Class contentType, Class containerType) {
-      return buildEvent().onPatternEvent(contentType, containerType);
+      return buildEvent().patternEvent(contentType, containerType);
     }
 
     public SemanticDefinition buildEvents() throws FSMException {
