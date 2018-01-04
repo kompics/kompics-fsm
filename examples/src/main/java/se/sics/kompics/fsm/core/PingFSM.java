@@ -61,7 +61,7 @@ public class PingFSM {
       .positivePort(PingPort.class)
         .basicEvent(BasicEvent.Pong.class)
           .subscribe(Handlers.handleBasicPong, States.WAIT_BASIC_PONG)
-        .onPatternEvent(BasicEvent.Pong.class, PatternEvent.class)
+        .patternEvent(BasicEvent.Pong.class, PatternEvent.class)
           .subscribe(Handlers.handlePatternPong, States.WAIT_PATTERN_PONG)
         .buildEvents();
   }

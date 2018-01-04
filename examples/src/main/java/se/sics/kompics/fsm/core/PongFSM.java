@@ -57,7 +57,7 @@ public class PongFSM {
         .basicEvent(BasicEvent.Ping.class)
           .subscribeOnStart(Handlers.handleBasicPing)
           .subscribe(Handlers.handleBasicPing, States.WAIT_BASIC_PING)
-        .onPatternEvent(BasicEvent.Ping.class, PatternEvent.class)
+        .patternEvent(BasicEvent.Ping.class, PatternEvent.class)
           .subscribe(Handlers.handlePatternPing, States.WAIT_PATTERN_PING)
         .buildEvents();
   }
