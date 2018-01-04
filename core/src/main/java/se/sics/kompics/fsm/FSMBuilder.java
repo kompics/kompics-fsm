@@ -406,11 +406,11 @@ public class FSMBuilder {
     }
 
     //*********SHORTCUTS**********
-    public BasicEvent onBasicEvent(Class eventType) {
+    public BasicEvent basicEvent(Class eventType) {
       return buildEvent().basicEvent(eventType);
     }
     
-    public PatternEvent onPatternEvent(Class contentType, Class containerType) {
+    public PatternEvent patternEvent(Class contentType, Class containerType) {
       return buildEvent().patternEvent(contentType, containerType);
     }
 
