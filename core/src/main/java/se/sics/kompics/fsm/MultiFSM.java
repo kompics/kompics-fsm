@@ -142,7 +142,7 @@ public class MultiFSM {
         MDC.put(FSM_NAME, fsmDef.fsmName);
         try {
           
-          Optional<FSMachine> fsm = getFSM(payload);
+          Optional<FSMachine> fsm = getFSM(container);
           if (fsm.isPresent()) {
             MDC.put(FSM_ID, fsm.get().fsmId.toString());
             MDC.put(FSM_STATE, fsm.get().currentState.getValue0().toString());
