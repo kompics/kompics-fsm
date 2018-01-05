@@ -52,9 +52,9 @@ public class FSMachine {
   public FSMachine(FSMIdentifier fsmId, FSMOnKillAction oka, Map<FSMStateName, FSMState> states,
     Table<FSMStateName, FSMStateName, Boolean> transitionTable,
     FSMBasicEventHandler defaultFallbackBasicEvents, FSMPatternEventHandler defaultFallbackPatternEvents,
-    Map<Class, FSMBasicEventHandler> fallbackPositiveBasicEvents, 
+    Map<Class, FSMBasicEventHandler> fallbackPositiveBasicEvents,
     Map<Class, FSMBasicEventHandler> fallbackNegativeBasicEvents,
-    Map<Pair<Class, Class>, FSMPatternEventHandler> fallbackPositivePatternEvents, 
+    Map<Pair<Class, Class>, FSMPatternEventHandler> fallbackPositivePatternEvents,
     Map<Pair<Class, Class>, FSMPatternEventHandler> fallbackNegativePatternEvents) {
     this.fsmId = fsmId;
     this.oka = oka;
@@ -75,11 +75,13 @@ public class FSMachine {
     if (!next.isPresent()) {
       FSMBasicEventHandler fallback = fallbackPositiveBasicEvents.get(event.getClass());
       if (fallback == null) {
-        LOG.info("not handling positive port event:{}", event);
-        return;
-      } else {
-        next = Optional.of(currentState.getValue1().fallback(event, fallback));
+        if (defaultFallbackBasicEvents == null) {
+          LOG.info("not handling positive port event:{}", event);
+          return;
+        }
+        fallback = defaultFallbackBasicEvents;
       }
+      next = Optional.of(currentState.getValue1().fallback(event, fallback));
     }
     handle(next.get(), event);
   }
@@ -90,11 +92,13 @@ public class FSMachine {
     if (!next.isPresent()) {
       FSMBasicEventHandler fallback = fallbackNegativeBasicEvents.get(event.getClass());
       if (fallback == null) {
-        LOG.info("not handling negative port event:{}", event);
-        return;
-      } else {
-        next = Optional.of(currentState.getValue1().fallback(event, fallback));
+        if (defaultFallbackBasicEvents == null) {
+          LOG.info("not handling negative port event:{}", event);
+          return;
+        }
+        fallback = defaultFallbackBasicEvents;
       }
+      next = Optional.of(currentState.getValue1().fallback(event, fallback));
     }
     handle(next.get(), event);
   }
@@ -118,13 +122,16 @@ public class FSMachine {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(payload, container);
     if (!next.isPresent()) {
-      FSMPatternEventHandler fallback = fallbackPositivePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
+      FSMPatternEventHandler fallback 
+        = fallbackPositivePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
       if (fallback == null) {
-        LOG.info("not handling positive container:{}", container);
-        return;
-      } else {
-        next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
+        if (defaultFallbackPatternEvents == null) {
+          LOG.info("not handling positive container:{}", container);
+          return;
+        }
+        fallback = defaultFallbackPatternEvents;
       }
+      next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
     }
     handle(next.get(), payload, container);
   }
@@ -134,13 +141,16 @@ public class FSMachine {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(payload, container);
     if (!next.isPresent()) {
-      FSMPatternEventHandler fallback = fallbackNegativePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
+      FSMPatternEventHandler fallback 
+        = fallbackNegativePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
       if (fallback == null) {
-        LOG.info("not handling negative container:{}", container);
-        return;
-      } else {
-        next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
+        if (defaultFallbackPatternEvents == null) {
+          LOG.info("not handling negative container:{}", container);
+          return;
+        }
+        fallback = defaultFallbackPatternEvents;
       }
+      next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
     }
     handle(next.get(), payload, container);
   }
@@ -159,29 +169,31 @@ public class FSMachine {
     //we check at definition that both from and to states of a transition are registered
     currentState = Pair.with(next, states.get(next));
   }
-  
-  static FSMBasicEventHandler defaultFallbackBasicEvent = new FSMBasicEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
-    @Override
-    public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent event) 
+
+  static FSMBasicEventHandler DEFAULT_FALLABACK_BASIC_EVENTS
+    = new FSMBasicEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
+      @Override
+      public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent event)
       throws FSMException {
-      LOG.info("not handling event:{}", event);
-      return state;
-    }
-  };
-  
-  static FSMPatternEventHandler defaultFallbackPatternEvent = new FSMPatternEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
-    @Override
-     public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent payload,
-      PatternExtractor<Class, FSMEvent> container) throws FSMException {
-      LOG.info("not handling container:{}", container);
-      return state;
-    }
-  };
-  
+        LOG.info("not handling event:{}", event);
+        return state;
+      }
+    };
+
+  static FSMPatternEventHandler DEFAULT_FALLBACK_PATTERN_EVENTS
+    = new FSMPatternEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
+      @Override
+      public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent payload,
+        PatternExtractor<Class, FSMEvent> container) throws FSMException {
+        LOG.info("not handling container:{}", container);
+        return state;
+      }
+    };
+
   public FSMStateName getState() {
     return currentState.getValue0();
   }
-  
+
   //*********************************************TESTING_HELPERS********************************************************
   public FSMInternalState getFSMInternalState() {
     return currentState.getValue1().getFSMInternalState();

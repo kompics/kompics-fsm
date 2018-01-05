@@ -188,8 +188,8 @@ public class FSMBuilder {
     private final Map<Class, Set<Pair<Class, Class>>> positivePatternEvents = new HashMap<>();
     private final Map<Class, Set<Pair<Class, Class>>> negativePatternEvents = new HashMap<>();
 
-    private FSMBasicEventHandler defaultFallbackBasicEvent = FSMachine.defaultFallbackBasicEvent;
-    private FSMPatternEventHandler defaultFallbackPatternEvent = FSMachine.defaultFallbackPatternEvent;
+    private FSMBasicEventHandler defaultFallbackBasicEvent = FSMachine.DEFAULT_FALLABACK_BASIC_EVENTS;
+    private FSMPatternEventHandler defaultFallbackPatternEvent = FSMachine.DEFAULT_FALLBACK_PATTERN_EVENTS;
     private final Table<Class, FSMStateName, FSMBasicEventHandler> positiveBasicEventHandlers = HashBasedTable.create();
     private final Map<Class, FSMBasicEventHandler> positiveBasicFallbackHandlers = new HashMap<>();
     private final Table<Class, FSMStateName, FSMBasicEventHandler> negativeBasicEventHandlers = HashBasedTable.create();

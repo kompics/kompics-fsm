@@ -102,7 +102,7 @@ public class FSMachineDef {
     Map<Pair<Class, Class>, FSMPatternEventHandler>  fallbackPositivePatternEvents, 
     Map<Pair<Class, Class>, FSMPatternEventHandler>  fallbackNegativePatternEvents) {
     return new FSMachineDef(fsmIdFactory, fsmName, stateDefs, transitionTable, 
-      FSMachine.defaultFallbackBasicEvent, FSMachine.defaultFallbackPatternEvent,
+      FSMachine.DEFAULT_FALLABACK_BASIC_EVENTS, FSMachine.DEFAULT_FALLBACK_PATTERN_EVENTS,
       fallbackPositiveBasicEvents, fallbackNegativeBasicEvents, 
       fallbackPositivePatternEvents, fallbackNegativePatternEvents);
   }
