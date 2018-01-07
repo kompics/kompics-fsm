@@ -72,6 +72,7 @@ public class FSMachine {
   public void handlePositive(KompicsEvent event) throws FSMException {
     LOG.trace("handle event:{}", event);
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(event);
+    boolean fb = false;
     if (!next.isPresent()) {
       FSMBasicEventHandler fallback = fallbackPositiveBasicEvents.get(event.getClass());
       if (fallback == null) {
@@ -82,13 +83,15 @@ public class FSMachine {
         fallback = defaultFallbackBasicEvents;
       }
       next = Optional.of(currentState.getValue1().fallback(event, fallback));
+      fb = true;
     }
-    handle(next.get(), event);
+    handle(next.get(), event, fb);
   }
 
   public void handleNegative(KompicsEvent event) throws FSMException {
     LOG.trace("handle event:{}", event);
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(event);
+    boolean fb = false;
     if (!next.isPresent()) {
       FSMBasicEventHandler fallback = fallbackNegativeBasicEvents.get(event.getClass());
       if (fallback == null) {
@@ -99,11 +102,15 @@ public class FSMachine {
         fallback = defaultFallbackBasicEvents;
       }
       next = Optional.of(currentState.getValue1().fallback(event, fallback));
+      fb = true;
     }
-    handle(next.get(), event);
+    handle(next.get(), event, fb);
   }
 
-  private void handle(FSMStateName next, KompicsEvent event) throws FSMException {
+  private void handle(FSMStateName next, KompicsEvent event, boolean fallback) throws FSMException {
+    if(fallback && currentState.getValue0().equals(next)) {
+      return;
+    }
     if (FSMBasicStateNames.FINAL.equals(next)) {
       oka.kill(fsmId);
       return;
@@ -121,6 +128,7 @@ public class FSMachine {
     FSMException {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handlePositive(payload, container);
+    boolean fb = false;
     if (!next.isPresent()) {
       FSMPatternEventHandler fallback 
         = fallbackPositivePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
@@ -132,14 +140,16 @@ public class FSMachine {
         fallback = defaultFallbackPatternEvents;
       }
       next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
+      fb = true;
     }
-    handle(next.get(), payload, container);
+    handle(next.get(), payload, container, fb);
   }
 
   public void handleNegative(KompicsEvent payload, PatternExtractor container) throws
     FSMException {
     LOG.trace("handle container:{}", container);
     Optional<FSMStateName> next = currentState.getValue1().handleNegative(payload, container);
+    boolean fb = false;
     if (!next.isPresent()) {
       FSMPatternEventHandler fallback 
         = fallbackNegativePatternEvents.get(Pair.with(payload.getClass(), container.getClass()));
@@ -151,12 +161,16 @@ public class FSMachine {
         fallback = defaultFallbackPatternEvents;
       }
       next = Optional.of(currentState.getValue1().fallback(payload, container, fallback));
+      fb = true;
     }
-    handle(next.get(), payload, container);
+    handle(next.get(), payload, container, fb);
   }
 
-  private void handle(FSMStateName next, KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container)
-    throws FSMException {
+  private void handle(FSMStateName next, KompicsEvent payload, PatternExtractor<Class, KompicsEvent> container, 
+    boolean fallback) throws FSMException {
+    if(fallback && currentState.getValue0().equals(next)) {
+      return;
+    }
     if (FSMBasicStateNames.FINAL.equals(next)) {
       oka.kill(fsmId);
       return;
