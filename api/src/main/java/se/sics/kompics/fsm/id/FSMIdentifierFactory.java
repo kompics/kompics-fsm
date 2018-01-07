@@ -69,6 +69,11 @@ public interface FSMIdentifierFactory extends IdentifierFactory {
       FSMIdentifier id = (FSMIdentifier) fsmId;
       return id.fsmDefId;
     }
+
+    @Override
+    public void reset() {
+      reservedFSMDIds.clear();
+    }
   };
 
   public Identifier registerFSMDefId(String fsmName) throws FSMException;
@@ -78,4 +83,6 @@ public interface FSMIdentifierFactory extends IdentifierFactory {
   public FSMIdentifier getFSMId(Identifier fsmDefId, Identifier baseId);
   
   public Identifier getFSMDefId(Identifier fsmId);
+  
+  public void reset();
 }
