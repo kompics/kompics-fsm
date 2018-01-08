@@ -23,12 +23,11 @@ import java.util.Map;
 import se.sics.kompics.fsm.FSMException;
 import se.sics.kompics.util.ByteIdentifier;
 import se.sics.kompics.util.Identifier;
-import se.sics.kompics.util.IdentifierFactory;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface FSMIdentifierFactory extends IdentifierFactory {
+public interface FSMIdentifierFactory {
   public static final String CONFIG_KEY = "fsm_identifier_factory";
   public static final FSMIdentifierFactory DEFAULT = new FSMIdentifierFactory() {
     private byte fsmId = (byte) 0;
