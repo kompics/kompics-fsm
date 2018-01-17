@@ -195,7 +195,7 @@ public class FSMachine {
     };
 
   static FSMPatternEventHandler DEFAULT_FALLBACK_PATTERN_EVENTS
-    = new FSMPatternEventHandler<FSMExternalState, FSMInternalState, FSMEvent>() {
+    = new FSMPatternEventHandler<FSMExternalState, FSMInternalState, FSMEvent, PatternExtractor<Class, FSMEvent>>() {
       @Override
       public FSMStateName handle(FSMStateName state, FSMExternalState es, FSMInternalState is, FSMEvent payload,
         PatternExtractor<Class, FSMEvent> container) throws FSMException {

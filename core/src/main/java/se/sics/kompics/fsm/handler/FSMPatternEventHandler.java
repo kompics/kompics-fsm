@@ -28,7 +28,7 @@ import se.sics.kompics.fsm.FSMStateName;
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface FSMPatternEventHandler <ES extends FSMExternalState, IS extends FSMInternalState, E extends KompicsEvent> {
-  public FSMStateName handle(FSMStateName state, ES es, IS is, E payload, PatternExtractor<Class, E> container) throws FSMException;
+public interface FSMPatternEventHandler <ES extends FSMExternalState, IS extends FSMInternalState, P extends KompicsEvent, C extends PatternExtractor> {
+  public FSMStateName handle(FSMStateName state, ES es, IS is, P payload, C container) throws FSMException;
 }
 

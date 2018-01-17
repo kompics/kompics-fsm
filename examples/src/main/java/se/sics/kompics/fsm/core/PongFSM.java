@@ -145,10 +145,10 @@ public class PongFSM {
       };
     
     static FSMPatternEventHandler handlePatternPing 
-      = new FSMPatternEventHandler<ExternalState, InternalState, BasicEvent.Ping>() {
+      = new FSMPatternEventHandler<ExternalState, InternalState, BasicEvent.Ping, PatternExtractor>() {
       @Override
       public FSMStateName handle(FSMStateName state, ExternalState es, InternalState is, BasicEvent.Ping pong,
-        PatternExtractor<Class, BasicEvent.Ping> container) throws FSMException {
+        PatternExtractor container) throws FSMException {
         LOG.trace("pattern {}", pong);
           es.getProxy().trigger(new PatternEvent(pong.pong()), es.pingPort);
           return States.WAIT_BASIC_PING;
